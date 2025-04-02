@@ -1,9 +1,10 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
-#define 
 
 //gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
+
+enum plot_type {SCATTERPLOT = 0, HISTOGRAM = 1, HEATMAP = 2};
 
 typedef struct{
     int plot_type; //informaatiota siitä, minkä tyyppisen plotin halutaan tehdä datalla esim (0,1,2,3,...)'
