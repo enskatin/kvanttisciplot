@@ -1,8 +1,8 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
-#define WINDOWHEIGHT 200;
-#define WINDOWIDTH 200;
+#define WINDOWHEIGHT 200
+#define WINDOWIDTH 200
 
 //gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
 
