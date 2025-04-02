@@ -1,6 +1,9 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
+#define WINDOWHEIGHT 200;
+#define WINDOWIDTH 200;
+
 //gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
 
 enum plot_type {SCATTERPLOT = 0, HISTOGRAM = 1, HEATMAP = 2};
@@ -36,13 +39,13 @@ void activate(GtkApplication* app, gpointer user_data){
     GtkWidget *window;
     window = gtk_application_window_new(app); //Luodaan applikaation muodostama ikkuna
     gtk_window_set_title(GTK_WINDOW (window), "Plot");
-    gtk_window_set_default_size(GTK_WINDOW (window), 200,200);
+    gtk_window_set_default_size(GTK_WINDOW (window), WINDOWIDTH,WINDOWHEIGHT);
     GtkWidget *drawing_space = gtk_drawing_area_new(); //drawing_space on alue, jolle cairo pystyy piirtämään asioita
     gtk_window_set_child(GTK_WINDOW(window),drawing_space); //asetetaan drawing_space windowing lapseksi
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(drawing_space),draw_callback,user_data,g_free); //asetetaan drawing arean piirtämiseen käytettäväksi funktioksi draw_callback
     //funktiota kutsutaan käyttäjän haluamalla datalla sekä g_free parametrilla, joka vapauttaa datalle varatun tilan.
-    gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(drawing_space), background_size.x);
-    gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(drawing_space), background_size.y);
+    gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(drawing_space), WINDOWIDTH);
+    gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(drawing_space), WINDOWHEIGHT);
     gtk_window_present(GTK_WINDOW(window));
 }
 
