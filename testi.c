@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 
+gcc `pkg-config --cflags gtk4` -o testi testi.c `pkg-config --libs gtk4`
+
 #define WINDOWHEIGHT 200
 #define WINDOWIDTH 200
 

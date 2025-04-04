@@ -35,26 +35,26 @@ typedef struct{
 } figure_s;
 
 figure_s *figure(double min_x,double max_x, double min_y, double max_y){
-    figure_s *figure = g_new0(figure_s,1);
+    figure_s *figure = g_new0(figure_s,1); //Luodaan figure ja varataan sille tilaa
     figure->min_x = min_x;
     figure->max_x = max_x;
     figure->min_y = min_y;
     figure->max_y = max_y;
-    figure->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WINDOWIDTH, WINDOWHEIGHT);
-    figure->cr = cairo_create(figure->stored_surface);
-    cairo_set_source_rgb(figure->cr,1,1,1);
-    cairo_paint(figure->cr);
+    figure->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WINDOWIDTH, WINDOWHEIGHT); // luodaan surface ja asetetaan se figureen
+    figure->cr = cairo_create(figure->stored_surface); // Luodaan cairon konteksti entiteetti.
+    cairo_set_source_rgb(figure->cr,1,1,1); 
+    cairo_paint(figure->cr);//Asetetaan tausta valkoiseksi
     return figure; 
 }
 //ESIMERKKEJÄ:
 void plot1(figure_s *surface){
-    cairo_set_source_rgb(surface->cr,0,1,0);
+    cairo_set_source_rgb(surface->cr,0,1,0); // Etsii surface struktin k.e.:n
     cairo_rectangle(surface->cr,WINDOWIDTH/4,WINDOWHEIGHT/4,50,50);
     cairo_fill(surface->cr);
 }
 
 void plot2(figure_s *surface){
-    cairo_set_source_rgb(surface->cr,1,0,0);
+    cairo_set_source_rgb(surface->cr,1,0,0); // surfacesta k.e.
     cairo_rectangle(surface->cr,(WINDOWIDTH*3)/4,(WINDOWHEIGHT*3)/4,50,50);
     cairo_fill(surface->cr);
 }
