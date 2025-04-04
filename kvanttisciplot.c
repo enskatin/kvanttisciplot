@@ -80,8 +80,8 @@ void run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa arg
 
 int scatter_plot(int argc, char **argv, double *x_cords, double *y_cords){
     int r = 0; 
-    plot_data *pdata = g_mem0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran, ja asettaa struktin dataksi käyttäjän datan
-    pdata->pdata_form = g_mem0(s_scatterplot,1); //allokoi pdatan voidpointterin osoittamaan skatterplot struktiin
+    plot_data *pdata = g_new0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran, ja asettaa struktin dataksi käyttäjän datan
+    pdata->pdata_form = g_new0(s_scatterplot,1); //allokoi pdatan voidpointterin osoittamaan skatterplot struktiin
     s_scatterplot *p_scatter = pdata->pdata_form; // Selkeyden vuoksi luodaan p_scatter pointteri
     p_scatter->x_vector = x_cords; //asetetaan p_scatterin x ja y arvot osoittamaan x ja y koordinaattilistoihin.
     p_scatter->y_vector = y_cords;
@@ -93,8 +93,8 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 
     //Keskeneräinen
     int r = 0; 
-    plot_data *pdata = g_mem0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran
-    pdata->pdata_form = g_mem0(s_histogram,1); //allokoi pdatan voidpointterin osoittamaan histogram struktiin
+    plot_data *pdata = g_new0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran
+    pdata->pdata_form = g_new0(s_histogram,1); //allokoi pdatan voidpointterin osoittamaan histogram struktiin
     s_histogram *p_histogram = pdata->pdata_form; // Selkeyden vuoksi luodaan p_histogram pointteri
     p_histogram->data = data; //asetetaan p_histogramin data ja palkkien määrä
     p_histogram->numberofbars = number_of_bars;
