@@ -1,4 +1,13 @@
 TODO:
 
 1. UI:n alku. Ok?
+2. SCATTERPLOT
+    -  vertaa vektoreiden koot: pitää olla samankokoiset
+    - x,y-arvojen skaalaus min ja max arvojen perusteella
+    - pisteiden piirtäminen (huom cairon origo on vasemmalla yläkulmassa (cursed))
+    (Bonus):
+    - pisteiden yhdistäminen
+    - väri
+    - pisteiden tyyli
+
 
