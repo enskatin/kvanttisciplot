@@ -2,13 +2,14 @@ TODO:
 
 1. UI:n alku. Ok?
 2. SCATTERPLOT
-    - pisteen piirtäminen ok
     -  vertaa vektoreiden koot: pitää olla samankokoiset
-    - x,y-arvojen skaalaus min ja max arvojen perusteella
+    - x,y-arvojen skaalaus min ja max arvojen perusteella (huom marginaalit)
     - pisteiden piirtäminen (huom cairon origo on vasemmalla yläkulmassa (cursed))
     (Bonus):
     - pisteiden yhdistäminen
     - väri
+       -funktio joka ottaa argumentiksi merkkijonon esim "red" ja palauttaa 3 mittaisen vektorin jossa on float rgb arvot.
     - pisteiden tyyli
-
+    - x ja y akseli piirtäminen
+       - origon löytäminen ja janojen piirtäminen marginaalista marginaaliin origon kautta
 
