@@ -101,7 +101,7 @@ void scatterplot_draw(figure_s* surface, void *data, double r){
         y_scaled = scale_to_interval(the_data->y_vector, 0, max_y - min_y);
         for (int i = 0; i < x_size; i++) {
             //otettu huomioon cairon epämukavuudet TARKISTA
-            draw_point(surface, max_x - min_x - x_scaled[i],  max_y - min_y - y_scaled[i], r);
+            draw_point(surface, x_scaled[i],  max_y - min_y - y_scaled[i], r);
         }
     }
     g_free(x_scaled);
