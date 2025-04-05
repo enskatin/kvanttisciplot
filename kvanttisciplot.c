@@ -1,8 +1,9 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
-#define WINDOWHEIGHT 200
-#define WINDOWIDTH 200
+#define WINDOWHEIGHT 500
+#define WINDOWIDTH 500
+#define PI 3.14
 
 //gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
 
@@ -60,14 +61,51 @@ void plot2(figure_s *surface){
 }
 //ESIMERKIT LOPPUU.
 
+//pisteen piirtäminen, input: pisteen paikka ja sen säde, TODO: väri?
+void draw_point(figure_s* surface, double x, double y, double r) {
+    cairo_set_source_rgb(surface->cr, 0, 1, 0);
+    cairo_arc(surface->cr, x, y, r, 0, 2*PI);
+    cairo_fill(surface->cr);
+}
+
+//vektorin alkioiden määrä. tällä hetkellä ei dynaaminen. tarkoitus tehdä dynaamisesti?
+int size_of_vector(double* vec) {
+    int s;
+    return s;
+} 
+
+//skaalaa vektorin välille min max
+double* scale_to_interval(double* vec, double min, double max) {
+
+    return scaled_vec;
+}
+
 void free_plot_data(gpointer data_set){
     plot_data *data_1 = (plot_data*) data_set;
     g_free(data_1->pdata_form);
     g_free(data_1);
 }
-
-void scatterplot_draw(cairo_t *cr, void *data){
+//scatterplot. varmaan helpompaa piirtää surfacella? vaatii ehkä dynaamisen muistinvarauksen vektoreiden pituuksien määrittämiseksi ellei toista tapaa löydy.
+void scatterplot_draw(figure_s* surface, void *data, double r){
     s_scatterplot *the_data = (s_scatterplot*) data;
+    double* x_scaled;
+    double* y_scaled;
+    double min_y = surface->min_y;
+    double max_y = surface->max_y;
+    double min_x = surface->min_x;
+    double max_x = surface->max_y;
+    int x_size = size_of_vector(the_data->x_vector);
+    int y_size = size_of_vector(the_data->y_vector);
+    if (x_size == y_size) {
+        x_scaled = scale_to_interval(the_data->x_vector, 0, max_x - min_x);
+        y_scaled = scale_to_interval(the_data->y_vector, 0, max_y - min_y);
+        for (int i = 0; i < x_size; i++) {
+            //otettu huomioon cairon epämukavuudet TARKISTA
+            draw_point(surface, x_scaled[i],  max_y - min_y - y_scaled[i], r);
+        }
+    }
+    g_free(x_scaled);
+    g_free(y_scaled);
 }
 
 void histogram_draw(cairo_t *cr, void *data){
@@ -76,6 +114,9 @@ void histogram_draw(cairo_t *cr, void *data){
 
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
+    //testaamista varten
+    cairo_set_source_surface(cr, figure->stored_surface, 0, 0);
+    cairo_paint(cr);
 
 }
 
@@ -91,9 +132,11 @@ void activate(GtkApplication* app, gpointer user_data){
     gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(drawing_space), WINDOWIDTH);
     gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(drawing_space), WINDOWHEIGHT);
     gtk_window_present(GTK_WINDOW(window));
+    //onko tarpeellinen?
+    free_plot_data(user_data);
 }
 
-void run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
+int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
     //Tärkeää: piirtämisfunktioiden pitää aluksi muuttaa sisältämänsä data strukti gpointer tyyliseksi dataksi. 
     int r = 0;
     GtkApplication *app;
@@ -131,5 +174,14 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 
 
 int main(int argc, char **argv){
+    int r;
+    //testaamista
+    figure_s* figure1 = figure(0,0,0,0);
+
+    draw_point(figure1, WINDOWHEIGHT/2, WINDOWIDTH/2, 25);
+    draw_point(figure1, WINDOWHEIGHT/4, WINDOWIDTH/4, 25);
+
+    r = run_gtk(argc, argv, figure1);
+
     return r;
 }
