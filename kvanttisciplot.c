@@ -8,7 +8,6 @@
 //gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
 
 enum plot_type {SCATTERPLOT = 0, HISTOGRAM = 1, HEATMAP = 2};
-
 typedef struct{
     int numberofbars;
     double *data;
@@ -27,6 +26,7 @@ typedef struct{
 } plot_data;
 
 typedef struct{
+    int plot_type; // Lisätty sitä varten, jos haluaa käyttää figurea erityyppisten plottien hahmottelemisesta. Tällöin ei myöskään haittaa että min_x yms on olemassa.
     double min_x;
     double max_x;
     double min_y;
@@ -69,6 +69,7 @@ void draw_point(figure_s* surface, double x, double y, double r) {
 }
 
 //vektorin alkioiden määrä. tällä hetkellä ei dynaaminen. tarkoitus tehdä dynaamisesti?
+//Käyttäjän syöttämän vektorin pituus on staattinen mutta tuntematon.
 int size_of_vector(double* vec) {
     int s;
     return s;
@@ -80,11 +81,7 @@ double* scale_to_interval(double* vec, double min, double max) {
     return scaled_vec;
 }
 
-void free_plot_data(gpointer data_set){
-    plot_data *data_1 = (plot_data*) data_set;
-    g_free(data_1->pdata_form);
-    g_free(data_1);
-}
+
 //scatterplot. varmaan helpompaa piirtää surfacella? vaatii ehkä dynaamisen muistinvarauksen vektoreiden pituuksien määrittämiseksi ellei toista tapaa löydy.
 void scatterplot_draw(figure_s* surface, void *data, double r){
     s_scatterplot *the_data = (s_scatterplot*) data;
@@ -108,12 +105,10 @@ void scatterplot_draw(figure_s* surface, void *data, double r){
     g_free(y_scaled);
 }
 
-void histogram_draw(cairo_t *cr, void *data){
-    s_histogram *the_data = (s_histogram*) data;
-}
 
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
+    //Tarvitsee tarkistuksen, että figuredata on olemassa ja siinä on jonkinlainen stored_surface, jos ei ole niin pitää piirtä jotain muuta.
     //testaamista varten
     cairo_set_source_surface(cr, figure->stored_surface, 0, 0);
     cairo_paint(cr);
@@ -128,12 +123,12 @@ void activate(GtkApplication* app, gpointer user_data){
     GtkWidget *drawing_space = gtk_drawing_area_new(); //drawing_space on alue, jolle cairo pystyy piirtämään asioita
     gtk_window_set_child(GTK_WINDOW(window),drawing_space); //asetetaan drawing_space windowing lapseksi
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(drawing_space),draw_callback,user_data,NULL); //asetetaan drawing arean piirtämiseen käytettäväksi funktioksi draw_callback
-    //funktiota kutsutaan käyttäjän haluamalla datalla sekä free_plot_data parametrilla, joka vapauttaa datalle varatun tilan.
+    //funktiota kutsutaan figuredatalla
     gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(drawing_space), WINDOWIDTH);
     gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(drawing_space), WINDOWHEIGHT);
     gtk_window_present(GTK_WINDOW(window));
     //onko tarpeellinen?
-    free_plot_data(user_data);
+    // free_plot_data(user_data); <--- EI OLE TARPEELLINEN
 }
 
 int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
@@ -147,7 +142,10 @@ int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argu
     return r;
 }
 
+// OHEISET KOMENNOT OVAT VANHENTUNEITA JA OLIVAT AIKASEMMAN INFRASTRUKTUURIN JÄÄNTEITÄ:
+// KANNATTAA SUUNNITELLA KOKONAAN UUDET
 
+/*
 int scatter_plot(int argc, char **argv, double *x_cords, double *y_cords){
     int r = 0; 
     plot_data *pdata = g_new0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran, ja asettaa struktin dataksi käyttäjän datan
@@ -171,6 +169,8 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
     r = run_gtk(argc,argv,pdata);
     return r;
 }
+
+*/
 
 
 int main(int argc, char **argv){
