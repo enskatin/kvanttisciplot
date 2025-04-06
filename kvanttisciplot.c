@@ -1,5 +1,8 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <stdlib.h>
+//mahdollista dynaamista muistinvarausta varten. ymmärtääkseni olisi turvallisempaa vaihtaa dynaamiseen sillä malloc jne varaa muistia heapista
+//vs nyt varataan muistia stackista, josta kaikki kääntäjät eivät välttämmättä tykkää ja muisti on rajoitettu
 
 #define WINDOWHEIGHT 500
 #define WINDOWIDTH 500
@@ -71,38 +74,59 @@ void draw_point(figure_s* surface, double x, double y, double r) {
 //vektorin alkioiden määrä. tällä hetkellä ei dynaaminen. tarkoitus tehdä dynaamisesti?
 //Käyttäjän syöttämän vektorin pituus on staattinen mutta tuntematon.
 int size_of_vector(double* vec) {
-    int s;
-    return s;
 } 
 
-//skaalaa vektorin välille min max
-double* scale_to_interval(double* vec, double min, double max) {
+//skaalaa vektorin välille min max. skaalaa vektorista vec->scaled_vec. tämäkin ehkä parempi tehdä jossain vaiheessa dynaamisesti
+void scale_to_interval(double* vec, int size, double min, double max, double* scaled_vec) {
 
-    return scaled_vec;
+    //etsitään vec max ja min arvot. varmaan tehokkaampiakin tapoja etsiä
+    double vec_max = vec[0];
+    double vec_min = vec[0];
+
+    for (int i = 0; i < size; i++) {
+        if (vec[i] > vec_max) vec_max = vec[i];
+        if (vec[i] < vec_min) vec_min = vec[i];
+    }
+    //skaalaus
+    for (int i = 0; i < size; i++) {
+        scaled_vec[i] = (double) (vec[i]-vec_min)*(max-min)/(vec_max-vec_min) + min;
+    }
 }
 
 
-//scatterplot. varmaan helpompaa piirtää surfacella? vaatii ehkä dynaamisen muistinvarauksen vektoreiden pituuksien määrittämiseksi ellei toista tapaa löydy.
-void scatterplot_draw(figure_s* surface, void *data, double r){
+//scatterplot. varmaan helpompaa piirtää surfacella? testaamista varten annettu vektoreiden koot. vaatii ehkä dynaamisen muistinvarauksen vektoreiden pituuksien määrittämiseksi ellei toista tapaa löydy.
+void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y_size){
     s_scatterplot *the_data = (s_scatterplot*) data;
-    double* x_scaled;
-    double* y_scaled;
     double min_y = surface->min_y;
     double max_y = surface->max_y;
     double min_x = surface->min_x;
-    double max_x = surface->max_y;
-    int x_size = size_of_vector(the_data->x_vector);
-    int y_size = size_of_vector(the_data->y_vector);
+    double max_x = surface->max_x;
+    //int x_size = size_of_vector(the_data->x_vector);
+    //int y_size = size_of_vector(the_data->y_vector);
+
+    double* scaled_vec_x = (double*)malloc(x_size * sizeof(double));
+    double* scaled_vec_y = (double*)malloc(y_size * sizeof(double));
+
+    if (!scaled_vec_x || !scaled_vec_y) {
+        printf("Scatter mem failed");
+        return;
+    }
+    //ehkä järkevämpää vaihtaa dynaamiseen muistinvaraukseen jossain vaiheessa, mutta kokeillaan. 
+    //double scaled_vec_x[x_size];
+    //double scaled_vec_y[y_size];
+
+
     if (x_size == y_size) {
-        x_scaled = scale_to_interval(the_data->x_vector, 0, max_x - min_x);
-        y_scaled = scale_to_interval(the_data->y_vector, 0, max_y - min_y);
+        scale_to_interval(the_data->x_vector, x_size, 0, max_x - min_x, scaled_vec_x);
+        scale_to_interval(the_data->y_vector, y_size, 0, max_y - min_y, scaled_vec_y);
         for (int i = 0; i < x_size; i++) {
             //otettu huomioon cairon epämukavuudet TARKISTA
-            draw_point(surface, x_scaled[i],  max_y - min_y - y_scaled[i], r);
+            draw_point(surface, scaled_vec_x[i],  max_y - min_y - scaled_vec_y[i], r);
         }
     }
-    g_free(x_scaled);
-    g_free(y_scaled);
+
+    free(scaled_vec_x);
+    free(scaled_vec_y);
 }
 
 
@@ -176,10 +200,17 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 int main(int argc, char **argv){
     int r;
     //testaamista
-    figure_s* figure1 = figure(0,0,0,0);
+    double x[10] = {10, 20, 30, 40, 50, 15, 25, 46, 66, 55};
+    double y[10] = {10, 20, 30, 40, 50, 20, 100, 34, 23, 44};
+    s_scatterplot* scatterdata;
+    scatterdata->x_vector = x;
+    scatterdata->y_vector = y;
+    figure_s* figure1 = figure(0,WINDOWIDTH,0,WINDOWHEIGHT);
 
-    draw_point(figure1, WINDOWHEIGHT/2, WINDOWIDTH/2, 25);
-    draw_point(figure1, WINDOWHEIGHT/4, WINDOWIDTH/4, 25);
+    //draw_point(figure1, WINDOWHEIGHT/2, WINDOWIDTH/2, 25);
+    //draw_point(figure1, WINDOWHEIGHT/4, WINDOWIDTH/4, 25);
+    //toimii :D
+    scatterplot_draw(figure1, scatterdata, 5, 10, 10);
 
     r = run_gtk(argc, argv, figure1);
 
