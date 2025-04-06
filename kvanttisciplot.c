@@ -121,7 +121,7 @@ void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y
         scale_to_interval(the_data->y_vector, y_size, 0, max_y - min_y, scaled_vec_y);
         for (int i = 0; i < x_size; i++) {
             //otettu huomioon cairon epämukavuudet TARKISTA
-            draw_point(surface, scaled_vec_x[i],  max_y - min_y - scaled_vec_y[i], r);
+            draw_point(surface, scaled_vec_x[i] + min_x,  max_y - scaled_vec_y[i], r);
         }
     }
 
@@ -200,17 +200,17 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 int main(int argc, char **argv){
     int r;
     //testaamista
-    double x[10] = {10, 20, 30, 40, 50, 15, 25, 46, 66, 55};
-    double y[10] = {10, 20, 30, 40, 50, 20, 100, 34, 23, 44};
+    double x[10] = {10, 20, 30, 40, 50};
+    double y[10] = {10, 20, 30, 40, 50};
     s_scatterplot* scatterdata;
     scatterdata->x_vector = x;
     scatterdata->y_vector = y;
-    figure_s* figure1 = figure(0,WINDOWIDTH,0,WINDOWHEIGHT);
+    figure_s* figure1 = figure(50 ,WINDOWIDTH - 50, 50, WINDOWHEIGHT - 50);
 
     //draw_point(figure1, WINDOWHEIGHT/2, WINDOWIDTH/2, 25);
     //draw_point(figure1, WINDOWHEIGHT/4, WINDOWIDTH/4, 25);
     //toimii :D
-    scatterplot_draw(figure1, scatterdata, 5, 10, 10);
+    scatterplot_draw(figure1, scatterdata, 5, 5, 5);
 
     r = run_gtk(argc, argv, figure1);
 
