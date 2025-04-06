@@ -124,7 +124,7 @@ void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y
             draw_point(surface, scaled_vec_x[i] + min_x,  max_y - scaled_vec_y[i], r);
         }
     }
-
+    
     free(scaled_vec_x);
     free(scaled_vec_y);
 }
