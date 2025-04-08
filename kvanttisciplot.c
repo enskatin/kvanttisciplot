@@ -79,6 +79,11 @@ int size_of_vector(double* vec) {
 //skaalaa vektorin välille min max. skaalaa vektorista vec->scaled_vec. tämäkin ehkä parempi tehdä jossain vaiheessa dynaamisesti
 void scale_to_interval(double* vec, int size, double min, double max, double* scaled_vec) {
 
+    if (!scaled_vec) {
+        printf("Scaled vec is null.\n");
+        return;
+    }
+
     //etsitään vec max ja min arvot. varmaan tehokkaampiakin tapoja etsiä
     double vec_max = vec[0];
     double vec_min = vec[0];
@@ -202,15 +207,16 @@ int main(int argc, char **argv){
     //testaamista
     double x[10] = {10, 20, 30, 40, 50};
     double y[10] = {10, 20, 30, 40, 50};
-    s_scatterplot* scatterdata;
-    scatterdata->x_vector = x;
-    scatterdata->y_vector = y;
+    s_scatterplot scatterdata;
+    scatterdata.x_vector = x;
+    scatterdata.y_vector = y;
+
     figure_s* figure1 = figure(50 ,WINDOWIDTH - 50, 50, WINDOWHEIGHT - 50);
 
     //draw_point(figure1, WINDOWHEIGHT/2, WINDOWIDTH/2, 25);
     //draw_point(figure1, WINDOWHEIGHT/4, WINDOWIDTH/4, 25);
     //toimii :D
-    scatterplot_draw(figure1, scatterdata, 5, 5, 5);
+    scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
 
     r = run_gtk(argc, argv, figure1);
 
