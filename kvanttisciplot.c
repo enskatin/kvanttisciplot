@@ -23,12 +23,6 @@ typedef struct{
 
 
 typedef struct{
-    int plot_type; //informaatiota siitä, minkä tyyppisen plotin halutaan tehdä datalla esim (0,1,2,3,...)'
-    // 0 = scatterplot,  1 = histogrammi, 2 = heatmap,
-    void *pdata_form; //esim histogram struct pointer tai scatterplot struct pointer
-} plot_data;
-
-typedef struct{
     int plot_type; // Lisätty sitä varten, jos haluaa käyttää figurea erityyppisten plottien hahmottelemisesta. Tällöin ei myöskään haittaa että min_x yms on olemassa.
     double min_x;
     double max_x;
