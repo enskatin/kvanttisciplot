@@ -207,9 +207,12 @@ int main(int argc, char **argv){
     //testaamista
     double x[10] = {10, 20, 30, 40, 50};
     double y[10] = {10, 20, 30, 40, 50};
+<<<<<<< HEAD
     s_scatterplot scatterdata;
     scatterdata.x_vector = x;
     scatterdata.y_vector = y;
+=======
+>>>>>>> 1d651232b153540fbead49d24edbbb05025d7fdc
 
     figure_s* figure1 = figure(50 ,WINDOWIDTH - 50, 50, WINDOWHEIGHT - 50);
 
