@@ -3,14 +3,15 @@ TODO:
 
 1. UI:n alku. Ok?
 2. SCATTERPLOT
-    -  vertaa vektoreiden koot: pitää olla samankokoiset
-    - x,y-arvojen skaalaus min ja max arvojen perusteella (huom marginaalit)
-    - pisteiden piirtäminen (huom cairon origo on vasemmalla yläkulmassa (cursed))
+    -  vertaa vektoreiden koot: pitää olla samankokoiset ok
+    - x,y-arvojen skaalaus min ja max arvojen perusteella (huom marginaalit) ok
+    - pisteiden piirtäminen (huom cairon origo on vasemmalla yläkulmassa (cursed)) ok
     (Bonus):
     - pisteiden yhdistäminen
     - väri
        -funktio joka ottaa argumentiksi merkkijonon esim "red" ja palauttaa 3 mittaisen vektorin jossa on float rgb arvot.
     - pisteiden tyyli
-    - x ja y akseli piirtäminen
+    - x ja y akseli piirtäminen ok
        - origon löytäminen ja janojen piirtäminen marginaalista marginaaliin origon kautta
-3. akselien nimet ja arvojen merkitseminen      
+3. akselien nimet ja arvojen merkitseminen 
+4. suoran sovitus ok     
