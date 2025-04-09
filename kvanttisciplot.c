@@ -134,32 +134,21 @@ void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y
     double max_y = surface->max_y;
     double min_x = surface->min_x;
     double max_x = surface->max_x;
-    //int x_size = size_of_vector(the_data->x_vector);
-    //int y_size = size_of_vector(the_data->y_vector);
 
-    double* scaled_vec_x = (double*)malloc(x_size * sizeof(double));
-    double* scaled_vec_y = (double*)malloc(y_size * sizeof(double));
-
-    if (!scaled_vec_x || !scaled_vec_y) {
-        printf("Scatter mem failed");
-        return;
-    }
-    //ehkä järkevämpää vaihtaa dynaamiseen muistinvaraukseen jossain vaiheessa, mutta kokeillaan. 
-    //double scaled_vec_x[x_size];
-    //double scaled_vec_y[y_size];
-
+    double* x_vector = the_data->x_vector;
+    double* y_vector = the_data->y_vector;
 
     if (x_size == y_size) {
-        scale_to_interval(the_data->x_vector, x_size, 0, max_x - min_x, scaled_vec_x);
-        scale_to_interval(the_data->y_vector, y_size, 0, max_y - min_y, scaled_vec_y);
         for (int i = 0; i < x_size; i++) {
+
+            double window_x = (x_vector[i] - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
+            double window_y = (y_vector[i] - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
+
             //otettu huomioon cairon epämukavuudet TARKISTA
-            draw_point(surface, scaled_vec_x[i] + min_x,  max_y - scaled_vec_y[i], r);
+            draw_point(surface, window_x,  HEIGHT_WITH_MARGINAL - window_y, r);
         }
     }
-    
-    free(scaled_vec_x);
-    free(scaled_vec_y);
+
 }
 
 
@@ -235,20 +224,20 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 int main(int argc, char **argv){
     int r;
     //testaamista
-    double x[10] = {10, 20, 30, 40, 50};
-    double y[10] = {10, 20, 30, 40, 50};
-    //s_scatterplot scatterdata;
-    //scatterdata.x_vector = x;
-    //scatterdata.y_vector = y;
+    double x[5] = {-50, 100, 150, 160, 180};
+    double y[5] = {-50, 100, 150, 160, 180};
+    s_scatterplot scatterdata;
+    scatterdata.x_vector = x;
+    scatterdata.y_vector = y;
 
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
-    figure_s* figure1 = figure(-10,20,-10,20);
+    figure_s* figure1 = figure(-100,200,-100,200);
     draw_axis(figure1);
 
-    draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
-    draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
+    //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
+    //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
     //toimii :D
-    //scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
+    scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
     
     r = run_gtk(argc, argv, figure1);
 
