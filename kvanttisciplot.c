@@ -151,6 +151,61 @@ void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y
 
 }
 
+//suoran sovitus
+
+double avarage(double vec[], int size) {
+    double r = 0;
+    for (int i = 0; i < size; i++) {
+        r = r + vec[i];
+    }
+    return (double) r/size;
+}
+
+double SRL_slope(double vec_x[], double vec_y[], int size) {
+    double d = 0;
+    double r = 0;
+
+    for (int i = 0; i < size; i++) {
+        r = r + (vec_x[i]-avarage(vec_x, size))*(vec_y[i]-avarage(vec_y, size));
+    }
+    for (int i = 0; i < size; i++) {
+        d = d + (vec_x[i]-avarage(vec_x, size))*(vec_x[i]-avarage(vec_x, size));
+    }
+    return (double) d/r;
+}
+
+double SRL_intercept(double vec_x[], double vec_y[], int size) {
+    double k = SRL_slope(vec_x, vec_y, size);
+    return avarage(vec_y, size) - k * avarage(vec_x, size);
+}
+
+void linear_fit(figure_s* surface, double vec_x[], double vec_y[], int size) {
+
+    double min_y = surface->min_y;
+    double max_y = surface->max_y;
+    double min_x = surface->min_x;
+    double max_x = surface->max_x;
+
+    double slope = SRL_slope(vec_x, vec_y, size);
+    double intercept = SRL_intercept(vec_x, vec_y, size);
+    double start_x = vec_x[0];
+    double end_x = vec_x[size - 1];
+    double start_y = slope*start_x + intercept;
+    double end_y = slope*end_x + intercept;
+
+    double scaled_end_x = (end_x - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
+    double scaled_end_y = (end_y - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
+    double scaled_start_x = (start_x - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
+    double scaled_start_y = (start_y - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
+
+    cairo_set_source_rgb(surface->cr,0.2,0.2,0.2);
+    cairo_set_line_width(surface->cr, 4);
+    cairo_move_to(surface->cr, scaled_start_x ,HEIGHT_WITH_MARGINAL - scaled_start_y);
+    cairo_line_to(surface->cr, scaled_end_x, HEIGHT_WITH_MARGINAL - scaled_end_y);
+    cairo_stroke(surface->cr);
+}
+
+
 
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
@@ -224,20 +279,21 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 int main(int argc, char **argv){
     int r;
     //testaamista
-    double x[5] = {-50, 100, 150, 160, 180};
-    double y[5] = {-50, 100, 150, 160, 180};
+    double x[5] = {-403, 434, 164, 500, 700};
+    double y[5] = {-302, 123, 150, 333, 329};
     s_scatterplot scatterdata;
     scatterdata.x_vector = x;
     scatterdata.y_vector = y;
 
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
-    figure_s* figure1 = figure(-100,200,-100,200);
+    figure_s* figure1 = figure(-1000,1000,-1000,1000);
     draw_axis(figure1);
 
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
     //toimii :D
     scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
+    linear_fit(figure1, x, y, 5);
     
     r = run_gtk(argc, argv, figure1);
 
