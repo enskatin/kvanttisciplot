@@ -6,6 +6,10 @@
 
 #define WINDOWHEIGHT 500
 #define WINDOWIDTH 500
+#define MARGINAL 50
+#define HEIGHT_WITH_MARGINAL 450
+#define WIDTH_WITH_MARGINAL 450
+
 #define PI 3.14
 
 //gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
@@ -38,7 +42,7 @@ figure_s *figure(double min_x,double max_x, double min_y, double max_y){
     figure->max_x = max_x;
     figure->min_y = min_y;
     figure->max_y = max_y;
-    figure->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WINDOWIDTH, WINDOWHEIGHT); // luodaan surface ja asetetaan se figureen
+    figure->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
     figure->cr = cairo_create(figure->stored_surface); // Luodaan cairon konteksti entiteetti.
     cairo_set_source_rgb(figure->cr,1,1,1); 
     cairo_paint(figure->cr);//Asetetaan tausta valkoiseksi
@@ -61,8 +65,38 @@ void plot2(figure_s *surface){
 //pisteen piirtäminen, input: pisteen paikka ja sen säde, TODO: väri?
 void draw_point(figure_s* surface, double x, double y, double r) {
     cairo_set_source_rgb(surface->cr, 0, 1, 0);
-    cairo_arc(surface->cr, x, y, r, 0, 2*PI);
+    cairo_arc(surface->cr, x, y, r, 0, 2*G_PI);
     cairo_fill(surface->cr);
+}
+
+void draw_axis(figure_s *surface){
+    double x_origin = -(surface->min_x)/((surface->max_x)-(surface->min_x))*WIDTH_WITH_MARGINAL;
+    double y_origin = -(surface->min_y)/((surface->max_y)-(surface->min_y))*HEIGHT_WITH_MARGINAL;
+    cairo_set_source_rgb(surface->cr,0.2,0.2,0.2);
+    cairo_set_line_width(surface->cr, 2);
+    cairo_move_to(surface->cr,x_origin,0);
+    cairo_line_to(surface->cr,x_origin,HEIGHT_WITH_MARGINAL);
+    
+    cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin);
+    cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin);
+
+    cairo_stroke(surface->cr);
+    cairo_set_line_width(surface->cr, 4);
+
+    cairo_move_to(surface->cr,x_origin+20,0);
+    cairo_line_to(surface->cr,x_origin-20,0);
+
+    cairo_move_to(surface->cr,x_origin+20,HEIGHT_WITH_MARGINAL);
+    cairo_line_to(surface->cr,x_origin-20,HEIGHT_WITH_MARGINAL);
+
+    cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin+20);
+    cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin-20);
+
+    cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin+20);
+    cairo_line_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin-20);
+
+
+    cairo_stroke(surface->cr);
 }
 
 //vektorin alkioiden määrä. tällä hetkellä ei dynaaminen. tarkoitus tehdä dynaamisesti?
@@ -133,7 +167,9 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
     figure_s *figure = (figure_s*) user_data;
     //Tarvitsee tarkistuksen, että figuredata on olemassa ja siinä on jonkinlainen stored_surface, jos ei ole niin pitää piirtä jotain muuta.
     //testaamista varten
-    cairo_set_source_surface(cr, figure->stored_surface, 0, 0);
+    cairo_set_source_rgb(cr,1,1,1);
+    cairo_paint(cr);
+    cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
     cairo_paint(cr);
 
 }
@@ -201,17 +237,19 @@ int main(int argc, char **argv){
     //testaamista
     double x[10] = {10, 20, 30, 40, 50};
     double y[10] = {10, 20, 30, 40, 50};
-    s_scatterplot scatterdata;
-    scatterdata.x_vector = x;
-    scatterdata.y_vector = y;
+    //s_scatterplot scatterdata;
+    //scatterdata.x_vector = x;
+    //scatterdata.y_vector = y;
 
-    figure_s* figure1 = figure(50 ,WINDOWIDTH - 50, 50, WINDOWHEIGHT - 50);
+    //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
+    figure_s* figure1 = figure(-10,20,-10,20);
+    draw_axis(figure1);
 
-    //draw_point(figure1, WINDOWHEIGHT/2, WINDOWIDTH/2, 25);
-    //draw_point(figure1, WINDOWHEIGHT/4, WINDOWIDTH/4, 25);
+    draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
+    draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
     //toimii :D
-    scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
-
+    //scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
+    
     r = run_gtk(argc, argv, figure1);
 
     return r;
