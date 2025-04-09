@@ -314,7 +314,7 @@ double SRL_slope(double vec_x[], double vec_y[], int size) {
     for (int i = 0; i < size; i++) {
         d = d + (vec_x[i]-avarage(vec_x, size))*(vec_x[i]-avarage(vec_x, size));
     }
-    return (double) d/r;
+    return (double) r/d;
 }
 
 double SRL_intercept(double vec_x[], double vec_y[], int size) {
@@ -329,10 +329,18 @@ void linear_fit(figure_s* surface, double vec_x[], double vec_y[], int size) {
     double min_x = surface->min_x;
     double max_x = surface->max_x;
 
+    double vec_x_max = vec_x[0];
+    double vec_x_min = vec_x[0];
+
+    for (int i = 0; i < size; i++) {
+        if (vec_x[i] > vec_x_max) vec_x_max = vec_x[i];
+        if (vec_x[i] < vec_x_min) vec_x_min = vec_x[i];
+    }
+
     double slope = SRL_slope(vec_x, vec_y, size);
     double intercept = SRL_intercept(vec_x, vec_y, size);
-    double start_x = vec_x[0];
-    double end_x = vec_x[size - 1];
+    double start_x = vec_x_min;
+    double end_x = vec_x_max;
     double start_y = slope*start_x + intercept;
     double end_y = slope*end_x + intercept;
 
@@ -422,8 +430,8 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 int main(int argc, char **argv){
     int r;
     //testaamista
-    double x[5] = {-403, 434, 164, 500, 700};
-    double y[5] = {-302, 123, 150, 333, 329};
+    double x[10] = {-403, 434, 164, 500, 700, 243, 13, 41, -111, -333};
+    double y[10] = {-302, 123, 150, 333, 329, 300, 100, 230, 453, 543};
     s_scatterplot scatterdata;
     scatterdata.x_vector = x;
     scatterdata.y_vector = y;
@@ -435,8 +443,8 @@ int main(int argc, char **argv){
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
     //toimii :D
-    scatterplot_draw(figure1, &scatterdata, 5, 5, 5);
-    linear_fit(figure1, x, y, 5);
+    scatterplot_draw(figure1, &scatterdata, 4, 10, 10);
+    linear_fit(figure1, x, y, 10);
     
     r = run_gtk(argc, argv, figure1);
 
