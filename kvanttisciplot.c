@@ -35,26 +35,29 @@ typedef struct{
     cairo_surface_t *stored_surface;
     cairo_t *cr;
 } figure_s;
-
+//Value adjuster funktion tarkoituksena on ottaa molemmat minimit ja maksimit ja muottaa maksimin ja minimin
+//arvot hyvämuotoiseksi siten, että akselinpiirtofunktio pystyy jakamaan y ja x akselin tasaisiin väleihin.
+// value adjuster muuttaa rajoja siten, että jos esim x max on 20, ja x min on -1, se muuttaa x min arvoksi -2
+// jotta välin -2,20 voi jakaa yhteentoista osaan.
 void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
     int running = 1;
     int i = 1;
-    if(*max_x>0){
-        if(*min_x<0){
-            if(-(*min_x)>*max_x){
+    if(*max_x>0 && (*min_x<0)){
+            //Tärkein tilanne, jossa x max on suurempi kuin nolla ja x min on pienempi kuin nolla.
+            if(-(*min_x)>*max_x){ // katsotaan, kumman itseisarvo on suurempi, minimin vai maksimin.
                 while(running){
-                    if(*max_x<(-i)*(*min_x/10)){
-                        *max_x=(-i)*(*min_x/10);
+                    if(*max_x<(-i)*(*min_x/10)){ // Katsotaan, kuinka monta kertaa pitää lisätä |minimin| kymmenesosa, että saadaan enemmän kuin maksimi
+                        *max_x=(-i)*(*min_x/10); // Asetetaan uudeksi maksimiksi tämä
                         running = 0;
                     }
                     i++;
                 }
                 i=0;
                 running = 1;
-            } else{
+            } else{ // Tilanne, jossa maksimi on suurempi kuin minimin itseisarvo 
                 while(running){
-                    if(*min_x>(-i)*(*max_x/10)){
-                        *min_x=(-i)*(*max_x/10);
+                    if(*min_x>(-i)*(*max_x/10)){ // Katsotaan, kuinka monta kertaa pitää poistaa maksimin kymmenesosa, että vähemmän kuin minimi
+                        *min_x=(-i)*(*max_x/10); // Aseteteaan uudeksi minimiksi tämä
                         running = 0;
                     }
                     i++;
@@ -63,13 +66,12 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
                 running = 1;
             }
         }
-    }
-    if(*max_y>0){
-        if(*min_y<0){
-            if(-(*min_y)>*max_y){
+    if(*max_y>0&&(*min_y<0)){
+            //Tärkein tilanne, jossa y max on suurempi kuin nolla ja y min on pienempi kuin nolla.
+            if(-(*min_y)>*max_y){ // Tilanne jossa minimin itseisarvo on suurempi kuin maksimi
                 while(running){
-                    if(*max_y<(-i)*(*min_y/10)){
-                        *max_y=(-i)*(*min_y/10);
+                    if(*max_y<(-i)*(*min_y/10)){ //katsotaan, kuinka monta kertaa pitää lisätä |minimin| moninkerta
+                        *max_y=(-i)*(*min_y/10); // asetetaan maksimiksi tämä
                         running = 0;
                     }
                     i++;
@@ -78,7 +80,7 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
                 running = 1;
             } else{
                 while(running){
-                    if(*min_y>(-i)*(*max_y/10)){
+                    if(*min_y>(-i)*(*max_y/10)){ // katsotaan, kuinka monta kertaa poistaa maksimin kymmenesosa.
                         *min_y=(-i)*(*max_y/10);
                         running = 0;
                     }
@@ -88,7 +90,6 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
                 running = 1;
             }
         }
-    }
 }  
 
 figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
@@ -130,22 +131,24 @@ void draw_point(figure_s* surface, double x, double y, double r) {
 }
 
 void draw_axis(figure_s *surface){
+
+    //ASETETAAN KOHDAT WINDOWISSA, MIHIN HALUTAAN PISTÄÄ ORIGO.
     double x_origin = -(surface->min_x)/((surface->max_x)-(surface->min_x))*WIDTH_WITH_MARGINAL;
     double y_origin = -(surface->min_y)/((surface->max_y)-(surface->min_y))*HEIGHT_WITH_MARGINAL;
-
-    int a = 1;
-    int c = 1;
-
-    if(surface->min_x>0){
+    // min multit ovat tärkeitä akseleiden piirtämistä varten, koska ne nollaavat minimin jos alla olevat ehdot toteutuu.
+    int x_min_multi = 1;
+    int y_min_multi = 1;
+    if(surface->min_x>0){//Jos x minimi on suurempaa kuin suurempaa kuin nolla, laitetaan akseli vasempaan reunaan. 
         x_origin=0;
-        a=0;
+        x_min_multi=0; // asetetaan a:n arvo nollaksi myöhempää varten
     }
     if(surface->max_x<0){
-        x_origin=WIDTH_WITH_MARGINAL;
+        x_origin=WIDTH_WITH_MARGINAL; //Jos x maksimi on vähempää kuin nolla, laitetaan akseli oikeaan reunaan
     }
+    // sama kuin x min ja x max
     if(surface->min_y>0){
         y_origin=0;
-        c=0;
+        y_min_multi=0;
     }
     if(surface->max_y<0){
         y_origin=HEIGHT_WITH_MARGINAL;
@@ -153,56 +156,62 @@ void draw_axis(figure_s *surface){
 
     cairo_set_source_rgb(surface->cr,0.7,0.7,0.7);
     cairo_set_line_width(surface->cr, 2);
+    //PIIRRETÄÄN Y AKSELI X ORIGIN LEVEYDELLE
     cairo_move_to(surface->cr,x_origin,0);
-    cairo_line_to(surface->cr,x_origin,HEIGHT_WITH_MARGINAL);
+    cairo_line_to(surface->cr,x_origin,HEIGHT_WITH_MARGINAL); 
 
+    //PIIRRETÄÄN X AKSELI Y ORIGIN KORKEUDELLE
     cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin);
     cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin);
+
+    //SEURAAVA IF HELVETTI PIIRTÄÄ X JA Y AKSELEIHIN VIIVAT TIETYLLÄ INTERVALLILLA AKSELEILLE
+    //INTERVALLI MÄÄRITELLÄÄN SITEN, ETTÄ OTETAAN PIDEMPI PÄTKÄ AKSELISTA (- tai +), JAETAAN SE KYMMENELLÄ,
+    //JONKA JÄLKEEN PÄTKITÄÄN KOKO AKSELI NÄILLÄ INTERVALLEILLA.
     int drawing = 1;
     int i = 0;
-    if(surface->max_y>0 && ((-surface->min_y)<surface->max_y)){
-    while(drawing){
-        if(surface->max_y/10*i>(surface->max_y-c*surface->min_y)){
-            break;
-        }
-        cairo_move_to(surface->cr,x_origin+10,(surface->max_y/10/(surface->max_y-c*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
-        cairo_line_to(surface->cr,x_origin-10,(surface->max_y/10/(surface->max_y-c*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
+    if(surface->max_y>0 && ((-surface->min_y)<surface->max_y)){ //kun max y positiivinen ja suurempi kuin |min_y|
+        while(drawing){
+            if(surface->max_y/10*i>(surface->max_y-(y_min_multi)*surface->min_y)){ //Piirretään viivoja kunnes y akselin pituus täyttyy
+                break;
+            }
+        cairo_move_to(surface->cr,x_origin+10,(surface->max_y/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
+        cairo_line_to(surface->cr,x_origin-10,(surface->max_y/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
         i++;
     }
     i=0;
-    } else if(surface->max_y>0 && ((-surface->min_y)>surface->max_y)){
+    } else if(surface->max_y>0 && ((-surface->min_y)>surface->max_y)){ // kun max y on pienempi kuin |min_y|
         while(drawing){
-            if(-surface->min_y/10*i>(surface->max_y-c*surface->min_y)){
+            if(-surface->min_y/10*i>(surface->max_y-(y_min_multi)*surface->min_y)){ // Piirretään, kunnes y akseli täyttyy
                 break;
             }
-            cairo_move_to(surface->cr,x_origin+10,((-surface->min_y)/10/(surface->max_y-c*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
-            cairo_line_to(surface->cr,x_origin-10,((-surface->min_y)/10/(surface->max_y-c*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
+            cairo_move_to(surface->cr,x_origin+10,((-surface->min_y)/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
+            cairo_line_to(surface->cr,x_origin-10,((-surface->min_y)/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
             i++;
         }
         i=0;
     } else {
-        for(int k = 1; k<11;k++){
+        for(int k = 1; k<11;k++){ //kun max_y on negatiivinen, jaetaan akseli vain kymmeneen osaan. 
             cairo_move_to(surface->cr,x_origin+10,(HEIGHT_WITH_MARGINAL/10)*k);
             cairo_line_to(surface->cr,x_origin-10,(HEIGHT_WITH_MARGINAL/10)*k);
         }
     }
-    if(surface->max_x>0 && ((-surface->min_x)<surface->max_x)){
+    if(surface->max_x>0 && ((-surface->min_x)<surface->max_x)){// Samma på svenska. 
     i=0;
     while(drawing){
-        if(surface->max_x/10*i>(surface->max_x- a* surface->min_x)){
+        if(surface->max_x/10*i>(surface->max_x- (x_min_multi)* surface->min_x)){
             break;
         }
-        cairo_move_to(surface->cr,(surface->max_x/10/(surface->max_x-a*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin+10);
-        cairo_line_to(surface->cr,(surface->max_x/10/(surface->max_x-a*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin-10);
+        cairo_move_to(surface->cr,(surface->max_x/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin+10);
+        cairo_line_to(surface->cr,(surface->max_x/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin-10);
         i++;
     }
     } else if(surface->max_x>0 && ((-surface->min_x)>surface->max_x)){
         while(drawing){
-            if((-surface->min_x)/10*i>(surface->max_x- a* surface->min_x)){
+            if((-surface->min_x)/10*i>(surface->max_x- (x_min_multi)* surface->min_x)){
                 break;
             }
-            cairo_move_to(surface->cr,(-(surface->min_x)/10/(surface->max_x-a*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin+10);
-            cairo_line_to(surface->cr,(-(surface->min_x)/10/(surface->max_x-a*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin-10);
+            cairo_move_to(surface->cr,(-(surface->min_x)/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin+10);
+            cairo_line_to(surface->cr,(-(surface->min_x)/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin-10);
             i++;
         }
     }  else{
@@ -212,19 +221,10 @@ void draw_axis(figure_s *surface){
         }
     }
 
-    //for(int i = 1; i<11;i++){
-       //cairo_move_to(surface->cr,x_origin+10,(HEIGHT_WITH_MARGINAL/10)*i);
-      //  cairo_line_to(surface->cr,x_origin-10,(HEIGHT_WITH_MARGINAL/10)*i);
-    //}
-
-    //for(int i = 1; i<11;i++){
-     //   cairo_move_to(surface->cr,(WIDTH_WITH_MARGINAL/10)*i,HEIGHT_WITH_MARGINAL-y_origin+10);
-      //  cairo_line_to(surface->cr,(WIDTH_WITH_MARGINAL/10)*i,HEIGHT_WITH_MARGINAL-y_origin-10);
-    //}
-
-
     cairo_stroke(surface->cr);
-    cairo_set_line_width(surface->cr, 4);
+
+    //PIIRRETÄÄN AKSELEIDEN PÄIHIN 40 MITTAISET PÄÄT
+    cairo_set_line_width(surface->cr, 2);
 
     cairo_move_to(surface->cr,x_origin+20,0);
     cairo_line_to(surface->cr,x_origin-20,0);
@@ -446,5 +446,6 @@ int main(int argc, char **argv){
     //toimii :D
     scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
     linear_fit(figure1, x, y, 29);
+    r = run_gtk(argc, argv, figure1);
     return r;
 }
