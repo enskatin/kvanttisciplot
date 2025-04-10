@@ -98,7 +98,7 @@ figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
     double max_y = o_max_y;
     double min_x = o_min_x;
     double min_y = o_min_y;
-    value_adjuster(&min_x,&max_x,&min_y,&max_y);
+    //value_adjuster(&min_x,&max_x,&min_y,&max_y);
     figure->min_x = min_x;
     figure->max_x = max_x;
     figure->min_y = min_y;
@@ -157,16 +157,22 @@ void draw_axis(figure_s *surface){
     cairo_set_source_rgb(surface->cr,0.7,0.7,0.7);
     cairo_set_line_width(surface->cr, 2);
     //PIIRRETÄÄN Y AKSELI X ORIGIN LEVEYDELLE
-    cairo_move_to(surface->cr,x_origin,0);
-    cairo_line_to(surface->cr,x_origin,HEIGHT_WITH_MARGINAL); 
+    cairo_move_to(surface->cr,0,0);
+    cairo_line_to(surface->cr,0,HEIGHT_WITH_MARGINAL); 
 
     //PIIRRETÄÄN X AKSELI Y ORIGIN KORKEUDELLE
-    cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin);
-    cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin);
-
+    cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL);
+    cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL);
+    for(int i=0; i<10;i++){
+        cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL/10*i);
+        cairo_line_to(surface->cr,10,HEIGHT_WITH_MARGINAL/10*i);
+        cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,HEIGHT_WITH_MARGINAL);
+        cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,HEIGHT_WITH_MARGINAL-10);
+    }
     //SEURAAVA IF HELVETTI PIIRTÄÄ X JA Y AKSELEIHIN VIIVAT TIETYLLÄ INTERVALLILLA AKSELEILLE
     //INTERVALLI MÄÄRITELLÄÄN SITEN, ETTÄ OTETAAN PIDEMPI PÄTKÄ AKSELISTA (- tai +), JAETAAN SE KYMMENELLÄ,
     //JONKA JÄLKEEN PÄTKITÄÄN KOKO AKSELI NÄILLÄ INTERVALLEILLA.
+    /*
     int drawing = 1;
     int i = 0;
     if(surface->max_y>0 && ((-surface->min_y)<surface->max_y)){ //kun max y positiivinen ja suurempi kuin |min_y|
@@ -220,23 +226,24 @@ void draw_axis(figure_s *surface){
             cairo_line_to(surface->cr,(WIDTH_WITH_MARGINAL/10)*k,HEIGHT_WITH_MARGINAL-y_origin-10);
         }
     }
-
+    
+    
+    */
     cairo_stroke(surface->cr);
-
     //PIIRRETÄÄN AKSELEIDEN PÄIHIN 40 MITTAISET PÄÄT
     cairo_set_line_width(surface->cr, 2);
 
-    cairo_move_to(surface->cr,x_origin+20,0);
-    cairo_line_to(surface->cr,x_origin-20,0);
+    cairo_move_to(surface->cr,0,0);
+    cairo_line_to(surface->cr,20,0);
 
-    cairo_move_to(surface->cr,x_origin+20,HEIGHT_WITH_MARGINAL);
-    cairo_line_to(surface->cr,x_origin-20,HEIGHT_WITH_MARGINAL);
+    //cairo_move_to(surface->cr,x_origin+20,HEIGHT_WITH_MARGINAL);
+    //cairo_line_to(surface->cr,x_origin-20,HEIGHT_WITH_MARGINAL);
 
-    cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin+20);
-    cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-y_origin-20);
+    cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL);
+    cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-20);
 
-    cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin+20);
-    cairo_line_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin-20);
+    //cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin+20);
+    //cairo_line_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin-20);
 
 
     cairo_stroke(surface->cr);
