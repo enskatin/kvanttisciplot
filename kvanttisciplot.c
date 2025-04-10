@@ -46,7 +46,7 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
             //Tärkein tilanne, jossa x max on suurempi kuin nolla ja x min on pienempi kuin nolla.
             if(-(*min_x)>*max_x){ // katsotaan, kumman itseisarvo on suurempi, minimin vai maksimin.
                 while(running){
-                    if(*max_x<(-i)*(*min_x/10)){ // Katsotaan, kuinka monta kertaa pitää lisätä |minimin| kymmenesosa, että saadaan enemmän kuin maksimi
+                    if(*max_x<=(-i)*(*min_x/10)){ // Katsotaan, kuinka monta kertaa pitää lisätä |minimin| kymmenesosa, että saadaan enemmän kuin maksimi
                         *max_x=(-i)*(*min_x/10); // Asetetaan uudeksi maksimiksi tämä
                         running = 0;
                     }
@@ -56,7 +56,7 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
                 running = 1;
             } else{ // Tilanne, jossa maksimi on suurempi kuin minimin itseisarvo 
                 while(running){
-                    if(*min_x>(-i)*(*max_x/10)){ // Katsotaan, kuinka monta kertaa pitää poistaa maksimin kymmenesosa, että vähemmän kuin minimi
+                    if(*min_x>=(-i)*(*max_x/10)){ // Katsotaan, kuinka monta kertaa pitää poistaa maksimin kymmenesosa, että vähemmän kuin minimi
                         *min_x=(-i)*(*max_x/10); // Aseteteaan uudeksi minimiksi tämä
                         running = 0;
                     }
@@ -70,7 +70,7 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
             //Tärkein tilanne, jossa y max on suurempi kuin nolla ja y min on pienempi kuin nolla.
             if(-(*min_y)>*max_y){ // Tilanne jossa minimin itseisarvo on suurempi kuin maksimi
                 while(running){
-                    if(*max_y<(-i)*(*min_y/10)){ //katsotaan, kuinka monta kertaa pitää lisätä |minimin| moninkerta
+                    if(*max_y<=(-i)*(*min_y/10)){ //katsotaan, kuinka monta kertaa pitää lisätä |minimin| moninkerta
                         *max_y=(-i)*(*min_y/10); // asetetaan maksimiksi tämä
                         running = 0;
                     }
@@ -80,7 +80,7 @@ void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
                 running = 1;
             } else{
                 while(running){
-                    if(*min_y>(-i)*(*max_y/10)){ // katsotaan, kuinka monta kertaa poistaa maksimin kymmenesosa.
+                    if(*min_y>=(-i)*(*max_y/10)){ // katsotaan, kuinka monta kertaa poistaa maksimin kymmenesosa.
                         *min_y=(-i)*(*max_y/10);
                         running = 0;
                     }
@@ -430,28 +430,23 @@ int histogram(int argc, char **argv, double *data, int number_of_bars){
 int main(int argc, char **argv){
     int r;
     //testaamista. dataa jostain tähtitieteestä
-    double x[29] = {3.95828, 4.08022, 4.06622, 4.17817, 4.22316, 3.99228, 3.61663, 4.13720, 3.52392, 3.89735, 4.35112, 3.89136, 3.62760, 4.48109, 4.26014, 3.77444, 4.03025, 4.13120, 4.24015, 4.11020, 3.73646, 4.37411, 4.42010, 4.27914, 4.32613, 3.87237, 4.19317, 4.17718, 3.93529};
+    //double x[29] = {3.95828, 4.08022, 4.06622, 4.17817, 4.22316, 3.99228, 3.61663, 4.13720, 3.52392, 3.89735, 4.35112, 3.89136, 3.62760, 4.48109, 4.26014, 3.77444, 4.03025, 4.13120, 4.24015, 4.11020, 3.73646, 4.37411, 4.42010, 4.27914, 4.32613, 3.87237, 4.19317, 4.17718, 3.93529};
     
-    double y[29] = {16.31, 17.12, 17.37, 17.82, 17.77, 16.34, 14.54, 17.58, 15.09, 16.11, 18.51, 16.28, 14.65, 19.35, 18.16, 15.24, 16.76, 17.62, 18.11, 17.36, 15.85, 18.46, 19.34, 18.30, 18.41, 16.61, 17.76, 17.69, 16.37};
-    s_scatterplot scatterdata;
-    scatterdata.x_vector = x;
-    scatterdata.y_vector = y;
+    //double y[29] = {16.31, 17.12, 17.37, 17.82, 17.77, 16.34, 14.54, 17.58, 15.09, 16.11, 18.51, 16.28, 14.65, 19.35, 18.16, 15.24, 16.76, 17.62, 18.11, 17.36, 15.85, 18.46, 19.34, 18.30, 18.41, 16.61, 17.76, 17.69, 16.37};
+    //s_scatterplot scatterdata;
+    //scatterdata.x_vector = x;
+    //scatterdata.y_vector = y;
 
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
-    figure_s* figure1 = figure(3,5,13, 20);
+    figure_s* figure1 = figure(-3,2,-3, 2);
     draw_axis(figure1);
 
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
     //toimii :D
-    scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
-    linear_fit(figure1, x, y, 29);
-<<<<<<< HEAD
-    r = run_gtk(argc, argv, figure1);
-=======
-
+    //scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
+    //linear_fit(figure1, x, y, 29);
     r = run_gtk(argc, argv, figure1);
 
->>>>>>> 077ef944ea24e848a6caea6e13151ecaf0c30cef
     return r;
 }
