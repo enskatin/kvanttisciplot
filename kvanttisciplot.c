@@ -446,6 +446,12 @@ int main(int argc, char **argv){
     //toimii :D
     scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
     linear_fit(figure1, x, y, 29);
+<<<<<<< HEAD
     r = run_gtk(argc, argv, figure1);
+=======
+
+    r = run_gtk(argc, argv, figure1);
+
+>>>>>>> 077ef944ea24e848a6caea6e13151ecaf0c30cef
     return r;
 }
