@@ -12,7 +12,7 @@
 
 #define PI 3.14
 
-//gcc `pkg-config --cflags gtk4` -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
+//gcc `pkg-config --cflags gtk4` -g -o kvanttisciplot kvanttisciplot.c `pkg-config --libs gtk4`
 
 enum plot_type {SCATTERPLOT = 0, HISTOGRAM = 1, HEATMAP = 2};
 typedef struct{
@@ -32,6 +32,10 @@ typedef struct{
     double max_x;
     double min_y;
     double max_y;
+    char* x_label_text;
+    char* y_label_text;
+    int x_label_bool;
+    int y_label_bool;
     cairo_surface_t *stored_surface;
     cairo_t *cr;
 } figure_s;
@@ -103,6 +107,8 @@ figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
     figure->max_x = max_x;
     figure->min_y = min_y;
     figure->max_y = max_y;
+    figure->x_label_bool = 0;
+    figure->y_label_bool = 0;
     figure->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
     figure->cr = cairo_create(figure->stored_surface); // Luodaan cairon konteksti entiteetti.
     cairo_set_source_rgb(figure->cr,1,1,1); 
@@ -284,6 +290,39 @@ void draw_axis(figure_s *surface){
     //cairo_stroke(surface->cr);
 }
 
+void draw_x_label(cairo_t* cr, figure_s* surface) {
+    cairo_text_extents_t text_attr;
+    char* text = surface->x_label_text;
+    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+    cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 15);
+    cairo_text_extents(cr, text, &text_attr);
+    cairo_move_to(cr, WINDOWIDTH/2 - text_attr.width/2, HEIGHT_WITH_MARGINAL + 45);
+    cairo_show_text(cr, text);  
+}
+
+void draw_y_label(cairo_t* cr, figure_s* surface) {
+    cairo_text_extents_t text_attr;
+    char* text = surface->y_label_text;
+    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+    cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 15);
+    cairo_text_extents(cr, text, &text_attr);
+    cairo_move_to(cr, 5, HEIGHT_WITH_MARGINAL/2 - text_attr.height/2);
+    cairo_rotate(cr, G_PI/2);
+    cairo_show_text(cr, text);
+    cairo_rotate(cr, -G_PI/2);  
+}
+
+void x_label(figure_s* surface, char* text) {
+    surface->x_label_text = text;
+    surface->x_label_bool = 1;
+}
+
+void y_label(figure_s* surface, char* text) {
+    surface->y_label_text = text;
+    surface->y_label_bool = 1;
+}
 //vektorin alkioiden määrä. tällä hetkellä ei dynaaminen. tarkoitus tehdä dynaamisesti?
 //Käyttäjän syöttämän vektorin pituus on staattinen mutta tuntematon.
 int size_of_vector(double* vec) {
@@ -403,13 +442,19 @@ void linear_fit(figure_s* surface, double vec_x[], double vec_y[], int size) {
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
     //Tarvitsee tarkistuksen, että figuredata on olemassa ja siinä on jonkinlainen stored_surface, jos ei ole niin pitää piirtä jotain muuta.
-    //testaamista varten
+    //testaamista vart
     cairo_set_source_rgb(cr,0.9,0.9,1);
     cairo_paint(cr);
     cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
     cairo_paint(cr);
+    if (figure->x_label_bool) {
+        draw_x_label(cr, figure);
+    }
+    if (figure->y_label_bool) {
+        draw_y_label(cr, figure);
+    }
     draw_end_point_values(cr,figure);
-
+    //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
 
 void activate(GtkApplication* app, gpointer user_data){
@@ -483,6 +528,8 @@ int main(int argc, char **argv){
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
     figure_s* figure1 = figure(3,5,13, 20);
     draw_axis(figure1);
+    x_label(figure1, "hahahhahhahhahha");
+    y_label(figure1, "hahha");
 
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
