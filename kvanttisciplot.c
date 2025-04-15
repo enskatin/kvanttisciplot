@@ -34,8 +34,10 @@ typedef struct{
     double max_y;
     char* x_label_text;
     char* y_label_text;
+    char* title_text;
     int x_label_bool;
     int y_label_bool;
+    int title_bool;
     cairo_surface_t *stored_surface;
     cairo_t *cr;
 } figure_s;
@@ -314,6 +316,22 @@ void draw_y_label(cairo_t* cr, figure_s* surface) {
     cairo_rotate(cr, -G_PI/2);  
 }
 
+void draw_title(cairo_t* cr, figure_s* surface) {
+    cairo_text_extents_t text_attr;
+    char* text = surface->title_text;
+    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+    cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 15);
+    cairo_text_extents(cr, text, &text_attr);
+    cairo_move_to(cr, WINDOWIDTH/2 - text_attr.width/2, 15);
+    cairo_show_text(cr, text);
+}
+
+void title(figure_s* surface, char* text) {
+    surface->title_text = text;
+    surface->title_bool = 1;
+}
+
 void x_label(figure_s* surface, char* text) {
     surface->x_label_text = text;
     surface->x_label_bool = 1;
@@ -447,6 +465,9 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
     cairo_paint(cr);
     cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
     cairo_paint(cr);
+    if (figure->title_bool) {
+        draw_title(cr, figure);
+    }
     if (figure->x_label_bool) {
         draw_x_label(cr, figure);
     }
@@ -528,8 +549,9 @@ int main(int argc, char **argv){
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
     figure_s* figure1 = figure(3,5,13, 20);
     draw_axis(figure1);
-    x_label(figure1, "hahahhahhahhahha");
-    y_label(figure1, "hahha");
+    x_label(figure1, "X-akseli");
+    y_label(figure1, "Y-akseli");
+    title(figure1, "Kuvajaja");
 
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
