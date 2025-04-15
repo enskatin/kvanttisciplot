@@ -130,10 +130,35 @@ void plot2(figure_s *surface){
     cairo_fill(surface->cr);
 }
 //ESIMERKIT LOPPUU.
+//funktio kuvaajan värin määrittämiseksi 
+
+//@param figure_s*surface pointteri figure_s tyyppiseen structiin, johon piirretään 
+
+//@param char_color[] stringi, joka on: red, green, blue, yellow, lightblue, pink tai black 
+
+int set_color(figure_s *surface, char color[]){ 
+    if(color=="red"){ 
+        cairo_set_source_rgb(surface->cr, 1,0,0); 
+    } else if(color=="green"){ 
+        cairo_set_source_rgb(surface->cr, 0,1,0); 
+    } else if(color=="blue"){ 
+        cairo_set_source_rgb(surface->cr, 0,0,1); 
+    } else if(color=="yellow"){ 
+        cairo_set_source_rgb(surface->cr, 1,1,0); 
+    } else if(color=="lightblue"){ 
+        cairo_set_source_rgb(surface->cr, 0,1,1); 
+    } else if(color=="pink"){ 
+        cairo_set_source_rgb(surface->cr, 1,0,1); 
+    } else if(color=="black"){ 
+        cairo_set_source_rgb(surface->cr, 0,0,0); 
+    } else{ 
+        cairo_set_source_rgb(surface->cr, 1,0,0); 
+    } 
+} 
 
 //pisteen piirtäminen, input: pisteen paikka ja sen säde, TODO: väri?
 void draw_point(figure_s* surface, double x, double y, double r) {
-    cairo_set_source_rgb(surface->cr, 0, 1, 0);
+    set_color(surface, "pink");
     cairo_arc(surface->cr, x, y, r, 0, 2*G_PI);
     cairo_fill(surface->cr);
 }
