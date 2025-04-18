@@ -481,6 +481,24 @@ void linear_fit(figure_s* surface, double vec_x[], double vec_y[], int size) {
 }
 
 
+guint key_val;
+
+static gboolean event_key_pressed_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controller) {
+    
+    //if (state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_ALT_MASK)) return FALSE;
+
+    key_val = keyval;
+
+    g_print("Key pressed!\n");
+    g_print("%d %d \n", key_val, keycode);
+    return TRUE;
+}
+
+static gboolean event_key_released_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controlle) {
+    g_print("\nKey Released!\n");
+    return FALSE;
+}
+
 
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
@@ -505,12 +523,23 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
 
 void activate(GtkApplication* app, gpointer user_data){
     GtkWidget *window;
+    GtkEventController* event_controller;
+
     window = gtk_application_window_new(app); //Luodaan applikaation muodostama ikkuna
     gtk_window_set_title(GTK_WINDOW (window), "Plot");
     gtk_window_set_default_size(GTK_WINDOW (window), WINDOWIDTH,WINDOWHEIGHT);
     GtkWidget *drawing_space = gtk_drawing_area_new(); //drawing_space on alue, jolle cairo pystyy piirtämään asioita
     gtk_window_set_child(GTK_WINDOW(window),drawing_space); //asetetaan drawing_space windowing lapseksi
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(drawing_space),draw_callback,user_data,NULL); //asetetaan drawing arean piirtämiseen käytettäväksi funktioksi draw_callback
+    
+    //tallennusominaisuus
+
+    event_controller = gtk_event_controller_key_new();
+    g_signal_connect(event_controller, "key-pressed", G_CALLBACK(event_key_pressed_cb), user_data);
+    g_signal_connect(event_controller, "key-released", G_CALLBACK(event_key_released_cb), user_data);
+    gtk_widget_add_controller(GTK_WIDGET(window), event_controller);
+
+    
     //funktiota kutsutaan figuredatalla
     gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(drawing_space), WINDOWIDTH);
     gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(drawing_space), WINDOWHEIGHT);
