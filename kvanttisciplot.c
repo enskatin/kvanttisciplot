@@ -480,23 +480,26 @@ void linear_fit(figure_s* surface, double vec_x[], double vec_y[], int size) {
     cairo_stroke(surface->cr);
 }
 
-
-guint key_val;
-
-static gboolean event_key_pressed_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controller) {
-    
-    //if (state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_ALT_MASK)) return FALSE;
-
-    key_val = keyval;
-
-    g_print("Key pressed!\n");
-    g_print("%d %d \n", key_val, keycode);
-    return TRUE;
+void save(gpointer user_data) {
+    //ei toimi vielä kunnolla. ei talenna koko plottia. pitää vielä antaa mahdollisuus nimetä tallennettu kuva
+    figure_s* figure = (figure_s*) user_data;
+    cairo_surface_write_to_png(figure->stored_surface, "Plot.png");
 }
 
-static gboolean event_key_released_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controlle) {
-    g_print("\nKey Released!\n");
-    return FALSE;
+
+guint prev_key_val;
+guint key_val;
+guint save_as_png = 0;
+static void event_key_pressed_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controller) {
+    //if (state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_ALT_MASK)) return;
+    key_val = keyval;
+    if (prev_key_val == 65507 && key_val == 115) {
+        save_as_png = 1;
+    }
+    prev_key_val = keyval;
+}
+
+static void event_key_released_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controlle) {
 }
 
 
@@ -538,14 +541,12 @@ void activate(GtkApplication* app, gpointer user_data){
     g_signal_connect(event_controller, "key-pressed", G_CALLBACK(event_key_pressed_cb), user_data);
     g_signal_connect(event_controller, "key-released", G_CALLBACK(event_key_released_cb), user_data);
     gtk_widget_add_controller(GTK_WIDGET(window), event_controller);
-
     
     //funktiota kutsutaan figuredatalla
     gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(drawing_space), WINDOWIDTH);
     gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(drawing_space), WINDOWHEIGHT);
     gtk_window_present(GTK_WINDOW(window));
-    //onko tarpeellinen?
-    // free_plot_data(user_data); <--- EI OLE TARPEELLINEN
+
 }
 
 int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
@@ -555,6 +556,9 @@ int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argu
     app = gtk_application_new(NULL, G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate),user_data);
     r = g_application_run(G_APPLICATION(app), argc, argv);
+    if (save_as_png) {  
+        save(user_data);
+    }
     g_object_unref(app);
     return r;
 }
