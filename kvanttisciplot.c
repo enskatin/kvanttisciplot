@@ -59,6 +59,7 @@ figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
     figure->cr = cairo_create(figure->stored_surface); // Luodaan cairon konteksti entiteetti.
     cairo_set_source_rgb(figure->cr,1,1,1); 
     cairo_paint(figure->cr);//Asetetaan tausta valkoiseksi
+    cairo_set_source_rgb(figure->cr,1,0,0); 
     return figure; 
 }
 //ESIMERKKEJÄ:
@@ -102,7 +103,6 @@ int set_color(figure_s *surface, char color[]){
 
 //pisteen piirtäminen, input: pisteen paikka ja sen säde, TODO: väri?
 void draw_point(figure_s* surface, double x, double y, double r) {
-    set_color(surface, "pink");
     cairo_arc(surface->cr, x, y, r, 0, 2*G_PI);
     cairo_fill(surface->cr);
 }
@@ -189,7 +189,7 @@ void draw_axis(figure_s *surface){
         cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,10);
     }
     cairo_stroke(surface->cr);
-
+    cairo_set_source_rgb(surface->cr,0,1,0);
 }
 
 void draw_x_label(cairo_t* cr, figure_s* surface) {
@@ -467,6 +467,22 @@ int main(int argc, char **argv){
     scatterdata.x_vector = x;
     scatterdata.y_vector = y;
 
+
+    double vec1[10] = {
+        3.2000, 3.5222, 3.6444, 3.8667, 3.9889,
+        4.2111, 4.6333, 4.7556, 4.8778, 4.9000
+    };
+
+    // Array with 10 values from 13 to 19
+    double vec2[10] = {
+        13.0000, 13.6667, 14.3333, 15.0000, 15.6667,
+        16.3333, 17.0000, 17.6667, 18.3333, 19.0000
+    };
+
+    s_scatterplot scatterdata2;
+    scatterdata2.x_vector = vec1;
+    scatterdata2.y_vector = vec2;
+
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
     figure_s* figure1 = figure(3,5,12,21);
     draw_axis(figure1);
@@ -477,7 +493,10 @@ int main(int argc, char **argv){
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
     //toimii :D
+    set_color(figure1, "blue");
     scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
+    set_color(figure1, "pink");
+    scatterplot_draw(figure1, &scatterdata2, 4, 10, 10);
     linear_fit(figure1, x, y, 29);
     r = run_gtk(argc, argv, figure1);
 
