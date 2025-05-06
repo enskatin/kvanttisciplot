@@ -45,58 +45,11 @@ typedef struct{
 //arvot hyvämuotoiseksi siten, että akselinpiirtofunktio pystyy jakamaan y ja x akselin tasaisiin väleihin.
 // value adjuster muuttaa rajoja siten, että jos esim x max on 20, ja x min on -1, se muuttaa x min arvoksi -2
 // jotta välin -2,20 voi jakaa yhteentoista osaan.
-void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
-    int running = 1;
-    int i = 1;
-    if(*max_x>0 && (*min_x<0)){
-            //Tärkein tilanne, jossa x max on suurempi kuin nolla ja x min on pienempi kuin nolla.
-            if(-(*min_x)>*max_x){ // katsotaan, kumman itseisarvo on suurempi, minimin vai maksimin.
-                while(running){
-                    if(*max_x<=(-i)*(*min_x/10)){ // Katsotaan, kuinka monta kertaa pitää lisätä |minimin| kymmenesosa, että saadaan enemmän kuin maksimi
-                        *max_x=(-i)*(*min_x/10); // Asetetaan uudeksi maksimiksi tämä
-                        running = 0;
-                    }
-                    i++;
-                }
-                i=0;
-                running = 1;
-            } else{ // Tilanne, jossa maksimi on suurempi kuin minimin itseisarvo 
-                while(running){
-                    if(*min_x>=(-i)*(*max_x/10)){ // Katsotaan, kuinka monta kertaa pitää poistaa maksimin kymmenesosa, että vähemmän kuin minimi
-                        *min_x=(-i)*(*max_x/10); // Aseteteaan uudeksi minimiksi tämä
-                        running = 0;
-                    }
-                    i++;
-                }
-                i=0;
-                running = 1;
-            }
-        }
-    if(*max_y>0&&(*min_y<0)){
-            //Tärkein tilanne, jossa y max on suurempi kuin nolla ja y min on pienempi kuin nolla.
-            if(-(*min_y)>*max_y){ // Tilanne jossa minimin itseisarvo on suurempi kuin maksimi
-                while(running){
-                    if(*max_y<=(-i)*(*min_y/10)){ //katsotaan, kuinka monta kertaa pitää lisätä |minimin| moninkerta
-                        *max_y=(-i)*(*min_y/10); // asetetaan maksimiksi tämä
-                        running = 0;
-                    }
-                    i++;
-                }
-                i=0;
-                running = 1;
-            } else{
-                while(running){
-                    if(*min_y>=(-i)*(*max_y/10)){ // katsotaan, kuinka monta kertaa poistaa maksimin kymmenesosa.
-                        *min_y=(-i)*(*max_y/10);
-                        running = 0;
-                    }
-                    i++;
-                }
-                i=0;
-                running = 1;
-            }
-        }
-}  
+//void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
+  // for(int i = 0;i>-32;i--){
+   // if
+   //}
+//}  
 
 figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
     figure_s *figure = g_new0(figure_s,1); //Luodaan figure ja varataan sille tilaa
@@ -164,13 +117,20 @@ void draw_point(figure_s* surface, double x, double y, double r) {
 }
 
 void draw_end_point_values(cairo_t *cr, figure_s *surface){
-    char min_xy[10];
+    char min_xy[12];
     char max_x[10];
     char max_y[10];
 
     sprintf(min_xy,"(%.2lf,%.2lf)",surface->min_x,surface->min_y);
     sprintf(max_x,"%.2lf",surface->max_x);
     sprintf(max_y,"%.2lf",surface->max_y);
+    int max_x_length = 10;
+    for(int i = 0;i<10;i++){
+        if(max_x[i] == '\0'){
+            max_x_length=i;
+        break;
+        }
+    }
 
     cairo_set_source_rgb(cr, 0, 0, 0);
     cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
@@ -179,7 +139,7 @@ void draw_end_point_values(cairo_t *cr, figure_s *surface){
     cairo_show_text(cr,max_y);
     cairo_move_to(cr,5,WINDOWHEIGHT-10);
     cairo_show_text(cr,min_xy);
-    cairo_move_to(cr,WINDOWIDTH-40,WINDOWHEIGHT-10);
+    cairo_move_to(cr,WINDOWIDTH-45-max_x_length,WINDOWHEIGHT-10);
     cairo_show_text(cr,max_x);
 
 }
@@ -605,7 +565,7 @@ int main(int argc, char **argv){
     scatterdata.y_vector = y;
 
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
-    figure_s* figure1 = figure(3,5,13, 20);
+    figure_s* figure1 = figure(3,5,12,21);
     draw_axis(figure1);
     x_label(figure1, "X-akseli");
     y_label(figure1, "Y-akseli");
