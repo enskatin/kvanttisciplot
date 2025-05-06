@@ -41,15 +41,6 @@ typedef struct{
     cairo_surface_t *stored_surface;
     cairo_t *cr;
 } figure_s;
-//Value adjuster funktion tarkoituksena on ottaa molemmat minimit ja maksimit ja muottaa maksimin ja minimin
-//arvot hyvämuotoiseksi siten, että akselinpiirtofunktio pystyy jakamaan y ja x akselin tasaisiin väleihin.
-// value adjuster muuttaa rajoja siten, että jos esim x max on 20, ja x min on -1, se muuttaa x min arvoksi -2
-// jotta välin -2,20 voi jakaa yhteentoista osaan.
-//void value_adjuster(double *min_x, double *max_x, double *min_y, double *max_y){
-  // for(int i = 0;i>-32;i--){
-   // if
-   //}
-//}  
 
 figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
     figure_s *figure = g_new0(figure_s,1); //Luodaan figure ja varataan sille tilaa
@@ -117,14 +108,14 @@ void draw_point(figure_s* surface, double x, double y, double r) {
 }
 
 void draw_end_point_values(cairo_t *cr, figure_s *surface){
-    char min_xy[12];
-    char max_x[10];
-    char max_y[10];
+    char min_xy[54];
+    char max_x[50];
+    char max_y[50];
 
     sprintf(min_xy,"(%.2lf,%.2lf)",surface->min_x,surface->min_y);
     sprintf(max_x,"%.2lf",surface->max_x);
     sprintf(max_y,"%.2lf",surface->max_y);
-    int max_x_length = 10;
+    int max_x_length = 50;
     for(int i = 0;i<10;i++){
         if(max_x[i] == '\0'){
             max_x_length=i;
@@ -197,84 +188,8 @@ void draw_axis(figure_s *surface){
         cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,0);
         cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,10);
     }
-    //SEURAAVA IF HELVETTI PIIRTÄÄ X JA Y AKSELEIHIN VIIVAT TIETYLLÄ INTERVALLILLA AKSELEILLE
-    //INTERVALLI MÄÄRITELLÄÄN SITEN, ETTÄ OTETAAN PIDEMPI PÄTKÄ AKSELISTA (- tai +), JAETAAN SE KYMMENELLÄ,
-    //JONKA JÄLKEEN PÄTKITÄÄN KOKO AKSELI NÄILLÄ INTERVALLEILLA.
-    /*
-    int drawing = 1;
-    int i = 0;
-    if(surface->max_y>0 && ((-surface->min_y)<surface->max_y)){ //kun max y positiivinen ja suurempi kuin |min_y|
-        while(drawing){
-            if(surface->max_y/10*i>(surface->max_y-(y_min_multi)*surface->min_y)){ //Piirretään viivoja kunnes y akselin pituus täyttyy
-                break;
-            }
-        cairo_move_to(surface->cr,x_origin+10,(surface->max_y/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
-        cairo_line_to(surface->cr,x_origin-10,(surface->max_y/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
-        i++;
-    }
-    i=0;
-    } else if(surface->max_y>0 && ((-surface->min_y)>surface->max_y)){ // kun max y on pienempi kuin |min_y|
-        while(drawing){
-            if(-surface->min_y/10*i>(surface->max_y-(y_min_multi)*surface->min_y)){ // Piirretään, kunnes y akseli täyttyy
-                break;
-            }
-            cairo_move_to(surface->cr,x_origin+10,((-surface->min_y)/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
-            cairo_line_to(surface->cr,x_origin-10,((-surface->min_y)/10/(surface->max_y-(y_min_multi)*surface->min_y))*i*(HEIGHT_WITH_MARGINAL));
-            i++;
-        }
-        i=0;
-    } else {
-        for(int k = 1; k<11;k++){ //kun max_y on negatiivinen, jaetaan akseli vain kymmeneen osaan. 
-            cairo_move_to(surface->cr,x_origin+10,(HEIGHT_WITH_MARGINAL/10)*k);
-            cairo_line_to(surface->cr,x_origin-10,(HEIGHT_WITH_MARGINAL/10)*k);
-        }
-    }
-    if(surface->max_x>0 && ((-surface->min_x)<surface->max_x)){// Samma på svenska. 
-    i=0;
-    while(drawing){
-        if(surface->max_x/10*i>(surface->max_x- (x_min_multi)* surface->min_x)){
-            break;
-        }
-        cairo_move_to(surface->cr,(surface->max_x/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin+10);
-        cairo_line_to(surface->cr,(surface->max_x/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin-10);
-        i++;
-    }
-    } else if(surface->max_x>0 && ((-surface->min_x)>surface->max_x)){
-        while(drawing){
-            if((-surface->min_x)/10*i>(surface->max_x- (x_min_multi)* surface->min_x)){
-                break;
-            }
-            cairo_move_to(surface->cr,(-(surface->min_x)/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin+10);
-            cairo_line_to(surface->cr,(-(surface->min_x)/10/(surface->max_x-(x_min_multi)*surface->min_x))*i*(WIDTH_WITH_MARGINAL),HEIGHT_WITH_MARGINAL-y_origin-10);
-            i++;
-        }
-    }  else{
-        for(int k = 1; k<11;k++){
-            cairo_move_to(surface->cr,(WIDTH_WITH_MARGINAL/10)*k,HEIGHT_WITH_MARGINAL-y_origin+10);
-            cairo_line_to(surface->cr,(WIDTH_WITH_MARGINAL/10)*k,HEIGHT_WITH_MARGINAL-y_origin-10);
-        }
-    }
-    
-    
-    */
     cairo_stroke(surface->cr);
-    //PIIRRETÄÄN AKSELEIDEN PÄIHIN 40 MITTAISET PÄÄT
-    //cairo_set_line_width(surface->cr, 2);
 
-    //cairo_move_to(surface->cr,0,0);
-    //cairo_line_to(surface->cr,20,0);
-
-    //cairo_move_to(surface->cr,x_origin+20,HEIGHT_WITH_MARGINAL);
-    //cairo_line_to(surface->cr,x_origin-20,HEIGHT_WITH_MARGINAL);
-
-    //cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL);
-    //cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL,HEIGHT_WITH_MARGINAL-20);
-
-    //cairo_move_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin+20);
-    //cairo_line_to(surface->cr,0,HEIGHT_WITH_MARGINAL-y_origin-20);
-
-
-    //cairo_stroke(surface->cr);
 }
 
 void draw_x_label(cairo_t* cr, figure_s* surface) {
@@ -443,7 +358,25 @@ void linear_fit(figure_s* surface, double vec_x[], double vec_y[], int size) {
 void save(gpointer user_data) {
     //ei toimi vielä kunnolla. ei talenna koko plottia. pitää vielä antaa mahdollisuus nimetä tallennettu kuva
     figure_s* figure = (figure_s*) user_data;
-    cairo_surface_write_to_png(figure->stored_surface, "Plot.png");
+    cairo_surface_t *tempsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WINDOWIDTH, WINDOWHEIGHT);
+    cairo_t *cr = cairo_create(tempsurface); // Luodaan cairon konteksti entiteetti.
+    cairo_set_source_rgb(cr,0.9,0.9,1);
+    cairo_paint(cr);
+    cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
+    cairo_paint(cr);
+    if (figure->title_bool) {
+        draw_title(cr, figure);
+    }
+    if (figure->x_label_bool) {
+        draw_x_label(cr, figure);
+    }
+    if (figure->y_label_bool) {
+        draw_y_label(cr, figure);
+    }
+    draw_end_point_values(cr,figure);
+    cairo_surface_write_to_png(tempsurface, "Plot.png");
+    cairo_destroy(cr);
+    cairo_surface_destroy(tempsurface);
 }
 
 
@@ -481,6 +414,7 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
         draw_y_label(cr, figure);
     }
     draw_end_point_values(cr,figure);
+
     //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
 
@@ -522,37 +456,6 @@ int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argu
     g_object_unref(app);
     return r;
 }
-
-// OHEISET KOMENNOT OVAT VANHENTUNEITA JA OLIVAT AIKASEMMAN INFRASTRUKTUURIN JÄÄNTEITÄ:
-// KANNATTAA SUUNNITELLA KOKONAAN UUDET
-
-/*
-int scatter_plot(int argc, char **argv, double *x_cords, double *y_cords){
-    int r = 0; 
-    plot_data *pdata = g_new0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran, ja asettaa struktin dataksi käyttäjän datan
-    pdata->pdata_form = g_new0(s_scatterplot,1); //allokoi pdatan voidpointterin osoittamaan skatterplot struktiin
-    s_scatterplot *p_scatter = pdata->pdata_form; // Selkeyden vuoksi luodaan p_scatter pointteri
-    p_scatter->x_vector = x_cords; //asetetaan p_scatterin x ja y arvot osoittamaan x ja y koordinaattilistoihin.
-    p_scatter->y_vector = y_cords;
-    r = run_gtk(argc,argv,pdata);
-    return r;
-}
-
-int histogram(int argc, char **argv, double *data, int number_of_bars){
-
-    //Keskeneräinen
-    int r = 0; 
-    plot_data *pdata = g_new0(plot_data,1); // allokoi tilaa g_mem0 avulla yhden plot_data struktin verran
-    pdata->pdata_form = g_new0(s_histogram,1); //allokoi pdatan voidpointterin osoittamaan histogram struktiin
-    s_histogram *p_histogram = pdata->pdata_form; // Selkeyden vuoksi luodaan p_histogram pointteri
-    p_histogram->data = data; //asetetaan p_histogramin data ja palkkien määrä
-    p_histogram->numberofbars = number_of_bars;
-    r = run_gtk(argc,argv,pdata);
-    return r;
-}
-
-*/
-
 
 int main(int argc, char **argv){
     int r;
