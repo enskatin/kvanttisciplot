@@ -379,6 +379,48 @@ void save(gpointer user_data) {
     cairo_surface_destroy(tempsurface);
 }
 
+// HISTOGRAMMI
+// funktio jolla lasketaan osavälien pituus
+float divider(int box_amount, int size, double *vec){
+    // minimin ja maksimi tarkistus
+    double vec_max = vec[0];
+    double vec_min = vec[0];
+
+    for (int i = 0; i < size; i++) {
+        if (vec[i] > vec_max) vec_max = vec[i];
+        if (vec[i] < vec_min) vec_min = vec[i];
+    }
+    //osavälin pituuden selvittäminen
+    float box_width = (vec_max-vec_min)/box_amount;
+    for (int i=0; i<box_amount;i++){
+    }
+    return box_width;
+}
+
+// muodostetaan heights muuttuja jonne tallennetaan kaikkien palkkien korkeudet (käydään kaikki
+// alkiot läpi ja lasketaan kuinka monta milläkin osavälillä on)
+int *heights(double *vec, int box_amount, int size, float box_width){
+    // minimin ja maksimin tarkistus
+    double vec_max = vec[0];
+    double vec_min = vec[0];
+
+    for (int i = 0; i < size; i++) {
+        if (vec[i] > vec_max) vec_max = vec[i];
+        if (vec[i] < vec_min) vec_min = vec[i];
+    }
+    int *heights=calloc(box_amount+1, sizeof(int));
+    // käydään läpi kaikki osavälit ja tarkistetaan moniko vektorin alkioista on osavälillä
+    for (int i=0; i<box_amount; i++){
+        for(int j=0; j<size;j++){
+            if (vec[j]>=(vec_min+(i*box_width))&&vec[j]<(vec_min+(i+1)*box_width)){
+                heights[i]++;
+            }
+        }
+    }
+    heights[box_amount]++;
+    return heights;
+}
+
 
 guint prev_key_val;
 guint key_val;
