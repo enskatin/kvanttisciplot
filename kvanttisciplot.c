@@ -42,12 +42,9 @@ typedef struct{
     cairo_t *cr;
 } figure_s;
 
-figure_s *figure(double o_min_x,double o_max_x, double o_min_y, double o_max_y){
+figure_s *figure(double min_x,double max_x, double min_y, double max_y){
     figure_s *figure = g_new0(figure_s,1); //Luodaan figure ja varataan sille tilaa
-    double max_x = o_max_x;
-    double max_y = o_max_y;
-    double min_x = o_min_x;
-    double min_y = o_min_y;
+    figure->plot_type=SCATTERPLOT;
     //value_adjuster(&min_x,&max_x,&min_y,&max_y);
     figure->min_x = min_x;
     figure->max_x = max_x;
@@ -379,6 +376,7 @@ void save(gpointer user_data) {
     cairo_surface_destroy(tempsurface);
 }
 
+
 // HISTOGRAMMI
 // funktio jolla lasketaan osavälien pituus
 float divider(int box_amount, int size, double *vec){
@@ -421,6 +419,29 @@ int *heights(double *vec, int box_amount, int size, float box_width){
     return heights;
 }
 
+double *height_adjuster(int *height,int size){
+
+}
+
+figure_s *histogram(figure_s *figure, double *data, int size, int interval){
+    figure_s *histo = g_new0(figure_s,1);
+    histo->tored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
+    histo->cr = cairo_create(histo->stored_surface); // Luodaan cairon konteksti entiteetti.
+    cairo_set_source_rgb(histo->cr,1,1,1); 
+    cairo_paint(histo->cr);//Asetetaan tausta valkoiseksi
+
+    double width = divider(interval,size,data);
+    int *hights = heights(data,interval,size,width);
+    double *adjusted_heights = height_adjuster(hights,size);
+    cairo_set_source_rgb(histo->cr,1,0,0); 
+    for(int i = 0; i<interval; i++){
+        cairo_rectangle(histo->cr,i*(WIDTH_WITH_MARGINAL/((double)interval)),
+        (HEIGHT_WITH_MARGINAL-adjusted_heights[i]*HEIGHT_WITH_MARGINAL),
+        WIDTH_WITH_MARGINAL/((double)interval),adjusted_heights[i]*HEIGHT_WITH_MARGINAL);
+    }
+    cairo_fill(histo->cr);
+}
+
 
 guint prev_key_val;
 guint key_val;
@@ -446,16 +467,23 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
     cairo_paint(cr);
     cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
     cairo_paint(cr);
-    if (figure->title_bool) {
-        draw_title(cr, figure);
-    }
-    if (figure->x_label_bool) {
-        draw_x_label(cr, figure);
-    }
-    if (figure->y_label_bool) {
-        draw_y_label(cr, figure);
-    }
-    draw_end_point_values(cr,figure);
+    switch(figure->plot_type){
+        case SCATTERPLOT:
+            if (figure->title_bool) {
+                draw_title(cr, figure);
+            }
+            if (figure->x_label_bool) {
+                draw_x_label(cr, figure);
+            }
+            if (figure->y_label_bool) {
+                draw_y_label(cr, figure);
+            }
+            draw_end_point_values(cr,figure);
+        break;
+        case HISTOGRAM:
+        break;
+        }
+    
 
     //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
