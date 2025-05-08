@@ -291,6 +291,37 @@ void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y
 
 }
 
+//pisteiden yhdistäminen (kuvaajan piirtäminen)
+// input: x koords ja y koords ja niiden koot
+void draw_graph(figure_s* surface, double x_vector[], double y_vector[], int x_size, int y_size) {
+    if (x_size != y_size) 
+    {
+        printf("Drawing graph failed. Dimensions of the vectors don't match! ");
+        return;
+    }
+    double window_x;
+    double window_y;
+    double window_next_x;
+    double window_next_y;
+    double min_y = surface->min_y;
+    double max_y = surface->max_y;
+    double min_x = surface->min_x;
+    double max_x = surface->max_x;
+    
+    cairo_set_source_rgb(surface->cr,0,0,0);
+    cairo_set_line_width(surface->cr, 2);
+    for (int i = 0; i < x_size - 1; i++) {
+        window_x = (x_vector[i] - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
+        window_y = (y_vector[i] - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
+        window_next_x = (x_vector[i+1] - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
+        window_next_y = (y_vector[i+1] - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
+        cairo_move_to(surface->cr, window_x, HEIGHT_WITH_MARGINAL - window_y);
+        cairo_line_to(surface->cr, window_next_x, HEIGHT_WITH_MARGINAL - window_next_y);
+    }
+    cairo_stroke(surface->cr);
+}
+
+
 //suoran sovitus
 
 double avarage(double vec[], int size) {
@@ -654,11 +685,20 @@ int main(int argc, char **argv){
     scatterdata2.y_vector = vec2;
 
     //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
-    figure_s* figure1 = figure(3,5,12,21);
+    figure_s* figure1 = figure(0,20,-50,100);
     draw_axis(figure1);
     x_label(figure1, "X-akseli");
     y_label(figure1, "Y-akseli");
     title(figure1, "Kuvaaja");
+
+
+    //funktion piirtämistä
+    double X[100];
+    double Y[100];
+    for (int i = 0; i < 100; i++) {
+        X[i] = i * (double)20/100;
+        Y[i] = X[i]*X[i]*X[i] - 3 * X[i]*X[i] + 2;
+    }
 
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
@@ -667,6 +707,7 @@ int main(int argc, char **argv){
     scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
     set_color(figure1, "pink");
     scatterplot_draw(figure1, &scatterdata2, 4, 10, 10);
+    draw_graph(figure1, X, Y, 100, 100);
     linear_fit(figure1, x, y, 29);
     figure_s* figure2 = histogram(vec3,200,45);
     title(figure2, "Histogrammi");
