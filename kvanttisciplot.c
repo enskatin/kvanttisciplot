@@ -156,7 +156,7 @@ void draw_axis(figure_s *surface){
         y_origin=HEIGHT_WITH_MARGINAL;
     }
 
-    cairo_set_source_rgb(surface->cr,0.7,0.7,0.7);
+    cairo_set_source_rgb(surface->cr,0,0,0);
     cairo_set_line_width(surface->cr, 2);
     //PIIRRETÄÄN Y AKSELI X ORIGIN LEVEYDELLE
     cairo_move_to(surface->cr,0,0);
@@ -379,6 +379,8 @@ void save(gpointer user_data) {
 
 // HISTOGRAMMI
 // funktio jolla lasketaan osavälien pituus
+
+
 float divider(int box_amount, int size, double *vec){
     // minimin ja maksimi tarkistus
     double vec_max = vec[0];
@@ -423,23 +425,32 @@ double *height_adjuster(int *height,int size){
 
 }
 
-figure_s *histogram(figure_s *figure, double *data, int size, int interval){
+figure_s *histogram(double *data, int size, int interval){
     figure_s *histo = g_new0(figure_s,1);
-    histo->tored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
+    histo->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
     histo->cr = cairo_create(histo->stored_surface); // Luodaan cairon konteksti entiteetti.
     cairo_set_source_rgb(histo->cr,1,1,1); 
     cairo_paint(histo->cr);//Asetetaan tausta valkoiseksi
-
-    double width = divider(interval,size,data);
-    int *hights = heights(data,interval,size,width);
-    double *adjusted_heights = height_adjuster(hights,size);
+    histo->plot_type = HISTOGRAM;
+    
+    //double width = divider(interval,size,data);
+    //int *hights = heights(data,interval,size,width);
+    //double *adjusted_heights = height_adjuster(hights,size);
+    cairo_set_line_width(histo->cr, 2);
+    double adjusted_heights[17] = {0.2,0.1,0.003,0.1,0.2,0.1,0.19,0.1,0.8,1.0,0.2,0.2,0.1,0.1,0.1,0.8,0.7};
+    interval = 17;
     cairo_set_source_rgb(histo->cr,1,0,0); 
     for(int i = 0; i<interval; i++){
-        cairo_rectangle(histo->cr,i*(WIDTH_WITH_MARGINAL/((double)interval)),
-        (HEIGHT_WITH_MARGINAL-adjusted_heights[i]*HEIGHT_WITH_MARGINAL),
-        WIDTH_WITH_MARGINAL/((double)interval),adjusted_heights[i]*HEIGHT_WITH_MARGINAL);
+        cairo_rectangle(histo->cr,i*(WIDTH_WITH_MARGINAL/((double)interval)),(HEIGHT_WITH_MARGINAL-adjusted_heights[i]*HEIGHT_WITH_MARGINAL),WIDTH_WITH_MARGINAL/((double)interval),adjusted_heights[i]*HEIGHT_WITH_MARGINAL);
     }
     cairo_fill(histo->cr);
+    cairo_set_source_rgb(histo->cr,0,0,0);
+    for(int i = 0; i<interval; i++){
+        cairo_rectangle(histo->cr,i*(WIDTH_WITH_MARGINAL/((double)interval)),(HEIGHT_WITH_MARGINAL-adjusted_heights[i]*HEIGHT_WITH_MARGINAL),WIDTH_WITH_MARGINAL/((double)interval),adjusted_heights[i]*HEIGHT_WITH_MARGINAL);
+    } 
+    cairo_stroke(histo->cr);
+    draw_axis(histo);
+    return histo;
 }
 
 
@@ -481,9 +492,11 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
             draw_end_point_values(cr,figure);
         break;
         case HISTOGRAM:
+            if (figure->title_bool) {
+                draw_title(cr, figure);
+            }
         break;
         }
-    
 
     //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
@@ -558,7 +571,7 @@ int main(int argc, char **argv){
     draw_axis(figure1);
     x_label(figure1, "X-akseli");
     y_label(figure1, "Y-akseli");
-    title(figure1, "Kuvajaja");
+    title(figure1, "Kuvaaja");
 
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
     //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
@@ -568,7 +581,9 @@ int main(int argc, char **argv){
     set_color(figure1, "pink");
     scatterplot_draw(figure1, &scatterdata2, 4, 10, 10);
     linear_fit(figure1, x, y, 29);
-    r = run_gtk(argc, argv, figure1);
+    figure_s* figure2 = histogram(NULL,0,0);
+    title(figure2, "Histogrammi");
+    r = run_gtk(argc, argv, figure2);
 
     return r;
 }
