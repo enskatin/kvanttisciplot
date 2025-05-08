@@ -38,6 +38,7 @@ typedef struct{
     int x_label_bool;
     int y_label_bool;
     int title_bool;
+    int freq_max; // Histogrammin arvojen freqvencin maksimi.
     cairo_surface_t *stored_surface;
     cairo_t *cr;
 } figure_s;
@@ -78,7 +79,7 @@ void plot2(figure_s *surface){
 
 //@param char_color[] stringi, joka on: red, green, blue, yellow, lightblue, pink tai black 
 
-int set_color(figure_s *surface, char color[]){ 
+void set_color(figure_s *surface, char color[]){ 
     if(color=="red"){ 
         cairo_set_source_rgb(surface->cr, 1,0,0); 
     } else if(color=="green"){ 
@@ -112,14 +113,9 @@ void draw_end_point_values(cairo_t *cr, figure_s *surface){
     sprintf(min_xy,"(%.2lf,%.2lf)",surface->min_x,surface->min_y);
     sprintf(max_x,"%.2lf",surface->max_x);
     sprintf(max_y,"%.2lf",surface->max_y);
-    int max_x_length = 50;
-    for(int i = 0;i<10;i++){
-        if(max_x[i] == '\0'){
-            max_x_length=i;
-        break;
-        }
-    }
-
+    cairo_text_extents_t extents;
+    cairo_text_extents(cr,max_x,&extents);
+    
     cairo_set_source_rgb(cr, 0, 0, 0);
     cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr, 12.0);
@@ -127,34 +123,39 @@ void draw_end_point_values(cairo_t *cr, figure_s *surface){
     cairo_show_text(cr,max_y);
     cairo_move_to(cr,5,WINDOWHEIGHT-10);
     cairo_show_text(cr,min_xy);
-    cairo_move_to(cr,WINDOWIDTH-45-max_x_length,WINDOWHEIGHT-10);
+    cairo_move_to(cr,WINDOWIDTH-MARGINAL/4-extents.width,WINDOWHEIGHT-10);
     cairo_show_text(cr,max_x);
 
 }
 
-void draw_axis(figure_s *surface){
+void histogram_marginal_draw(cairo_t *cr, figure_s *surface){
+    char min_x[50];
+    char max_x[50];
+    char half_x[50];
+    sprintf(min_x,"%.2lf",surface->min_x);
+    sprintf(max_x,"%.2lf",surface->max_x);
+    sprintf(half_x,"%.2lf",surface->min_x+(surface->max_x-surface->min_x)/2);
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 12.0);
+    cairo_text_extents_t extents,extents1;
+    cairo_text_extents(cr,max_x,&extents1);
+    for(int j = 0; j<10; j++){
+        char frequence[50] = {"\0"};
+        sprintf(frequence,"%d",(surface->freq_max-j*((surface->freq_max)/10)));
+        cairo_text_extents(cr,frequence,&extents);
+        cairo_move_to(cr,MARGINAL/1.3-extents.width,30+(j*(HEIGHT_WITH_MARGINAL/10)));
+        cairo_show_text(cr,frequence);
+    }
+    cairo_move_to(cr,30,WINDOWHEIGHT-10);
+    cairo_show_text(cr,min_x);
+    cairo_move_to(cr,WINDOWIDTH-extents1.width,WINDOWHEIGHT-10);
+    cairo_show_text(cr,max_x);
+    cairo_move_to(cr,WINDOWIDTH-extents1.width-(WIDTH_WITH_MARGINAL/2),WINDOWHEIGHT-10);
+    cairo_show_text(cr,half_x);
+}
 
-    //ASETETAAN KOHDAT WINDOWISSA, MIHIN HALUTAAN PISTÄÄ ORIGO.
-    double x_origin = -(surface->min_x)/((surface->max_x)-(surface->min_x))*WIDTH_WITH_MARGINAL;
-    double y_origin = -(surface->min_y)/((surface->max_y)-(surface->min_y))*HEIGHT_WITH_MARGINAL;
-    // min multit ovat tärkeitä akseleiden piirtämistä varten, koska ne nollaavat minimin jos alla olevat ehdot toteutuu.
-    int x_min_multi = 1;
-    int y_min_multi = 1;
-    if(surface->min_x>0){//Jos x minimi on suurempaa kuin suurempaa kuin nolla, laitetaan akseli vasempaan reunaan. 
-        x_origin=0;
-        x_min_multi=0; // asetetaan a:n arvo nollaksi myöhempää varten
-    }
-    if(surface->max_x<0){
-        x_origin=WIDTH_WITH_MARGINAL; //Jos x maksimi on vähempää kuin nolla, laitetaan akseli oikeaan reunaan
-    }
-    // sama kuin x min ja x max
-    if(surface->min_y>0){
-        y_origin=0;
-        y_min_multi=0;
-    }
-    if(surface->max_y<0){
-        y_origin=HEIGHT_WITH_MARGINAL;
-    }
+void draw_axis(figure_s *surface){
 
     cairo_set_source_rgb(surface->cr,0,0,0);
     cairo_set_line_width(surface->cr, 2);
@@ -359,6 +360,8 @@ void save(gpointer user_data) {
     cairo_t *cr = cairo_create(tempsurface); // Luodaan cairon konteksti entiteetti.
     cairo_set_source_rgb(cr,0.9,0.9,1);
     cairo_paint(cr);
+    switch(figure->plot_type){
+    case SCATTERPLOT:
     cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
     cairo_paint(cr);
     if (figure->title_bool) {
@@ -371,6 +374,16 @@ void save(gpointer user_data) {
         draw_y_label(cr, figure);
     }
     draw_end_point_values(cr,figure);
+    break;
+    case HISTOGRAM:
+    cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/1.2, MARGINAL/2);
+    cairo_paint(cr);
+    if (figure->title_bool) {
+        draw_title(cr, figure);
+    }
+    histogram_marginal_draw(cr,figure);
+    break;
+    }
     cairo_surface_write_to_png(tempsurface, "Plot.png");
     cairo_destroy(cr);
     cairo_surface_destroy(tempsurface);
@@ -426,8 +439,6 @@ float divider(int box_amount, int size, double *vec){
     }
     //osavälin pituuden selvittäminen
     float box_width = (vec_max-vec_min)/box_amount;
-    for (int i=0; i<box_amount;i++){
-    }
     return box_width;
 }
 
@@ -442,6 +453,7 @@ int *heights(double *vec, int box_amount, int size, float box_width){
         if (vec[i] > vec_max) vec_max = vec[i];
         if (vec[i] < vec_min) vec_min = vec[i];
     }
+    //printf("vektorimaximi on %lf\n",vec_max);
     int *heights=calloc(box_amount+1, sizeof(int));
     // käydään läpi kaikki osavälit ja tarkistetaan moniko vektorin alkioista on osavälillä
     for (int i=0; i<box_amount; i++){
@@ -451,13 +463,11 @@ int *heights(double *vec, int box_amount, int size, float box_width){
             }
         }
     }
-    heights[box_amount]++;
+    heights[box_amount-1]++;
     return heights;
 }
 
-double *height_adjuster(int *height,int size){
 
-}
 
 figure_s *histogram(double *data, int size, int interval){
     figure_s *histo = g_new0(figure_s,1);
@@ -469,14 +479,27 @@ figure_s *histogram(double *data, int size, int interval){
     
     double width = divider(interval,size,data);
     int *hights = heights(data,interval,size,width);
-    for(int i = 0; i<interval;i++){
-        printf("%d\n",hights[i]);
-    }
+    //for(int i = 0; i<interval;i++){
+      //  printf("%d\n",hights[i]);
+    //}
     int max = introunder(imax_finder(hights,interval));
-    printf("%d",max);
+    //printf("%d",max);
     double *adjusted_heights = zero_one_scaler(hights,interval,max);
+
+    double data_max = data[0];
+    double data_min = data[0];
+
+    for (int i = 0; i < size; i++) {
+        if (data[i] > data_max) data_max = data[i];
+        if (data[i] < data_min) data_min = data[i];
+    }
+
+    histo->freq_max = max;
+    histo->max_x = data_max;
+    histo->min_x = data_min;
+
     cairo_set_line_width(histo->cr, 2);
-    cairo_set_source_rgb(histo->cr,1,0,0); 
+    cairo_set_source_rgb(histo->cr,0,1,1); 
     for(int i = 0; i<interval; i++){
         cairo_rectangle(histo->cr,i*(WIDTH_WITH_MARGINAL/((double)interval)),(HEIGHT_WITH_MARGINAL-adjusted_heights[i]*HEIGHT_WITH_MARGINAL),WIDTH_WITH_MARGINAL/((double)interval),adjusted_heights[i]*HEIGHT_WITH_MARGINAL);
     }
@@ -515,10 +538,10 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
     //testaamista vart
     cairo_set_source_rgb(cr,0.9,0.9,1);
     cairo_paint(cr);
-    cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
-    cairo_paint(cr);
     switch(figure->plot_type){
         case SCATTERPLOT:
+            cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/2, MARGINAL/2);
+            cairo_paint(cr);
             if (figure->title_bool) {
                 draw_title(cr, figure);
             }
@@ -531,9 +554,12 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
             draw_end_point_values(cr,figure);
         break;
         case HISTOGRAM:
+            cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/1.2, MARGINAL/2);
+            cairo_paint(cr);
             if (figure->title_bool) {
                 draw_title(cr, figure);
             }
+            histogram_marginal_draw(cr,figure);
         break;
         }
 
@@ -642,8 +668,8 @@ int main(int argc, char **argv){
     set_color(figure1, "pink");
     scatterplot_draw(figure1, &scatterdata2, 4, 10, 10);
     linear_fit(figure1, x, y, 29);
-    //figure_s* figure2 = histogram(vec3,200,42);
-    //title(figure2, "Histogrammi");
+    figure_s* figure2 = histogram(vec3,200,45);
+    title(figure2, "Histogrammi");
     r = run_gtk(argc, argv, figure1);
 
     return r;
