@@ -449,7 +449,7 @@ double *zero_one_scaler(int *data, int size, int max){
 }
 
 int introunder(int max){
-    int max_start = 1;
+    int max_start = 10;
     for(int i = 0; i<32 ;i++){
         if(max<(max_start*10)){
             for(int k = 1; k<=10;k++){
@@ -461,7 +461,7 @@ int introunder(int max){
         }
         max_start = max_start*10;
     }
-    return 0;
+    return 1;
 }
 
 // funktio jolla lasketaan osavälien pituus
