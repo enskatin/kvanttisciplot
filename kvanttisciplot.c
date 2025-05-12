@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 //mahdollista dynaamista muistinvarausta varten. ymmärtääkseni olisi turvallisempaa vaihtaa dynaamiseen sillä malloc jne varaa muistia heapista
 //vs nyt varataan muistia stackista, josta kaikki kääntäjät eivät välttämmättä tykkää ja muisti on rajoitettu
 
@@ -78,20 +79,20 @@ void plot2(figure_s *surface){
 
 //@param char_color[] stringi, joka on: red, green, blue, yellow, lightblue, pink tai black 
 
-int set_color(figure_s *surface, char color[]){ 
-    if(color=="red"){ 
+void set_color(figure_s *surface, char color[]){ 
+    if(strcmp(color, "red") == 0){ 
         cairo_set_source_rgb(surface->cr, 1,0,0); 
-    } else if(color=="green"){ 
+    } else if(strcmp(color, "green") == 0){ 
         cairo_set_source_rgb(surface->cr, 0,1,0); 
-    } else if(color=="blue"){ 
+    } else if(strcmp(color, "blue") == 0){ 
         cairo_set_source_rgb(surface->cr, 0,0,1); 
-    } else if(color=="yellow"){ 
+    } else if(strcmp(color, "yellow") == 0){ 
         cairo_set_source_rgb(surface->cr, 1,1,0); 
-    } else if(color=="lightblue"){ 
+    } else if(strcmp(color, "lightblue") == 0){ 
         cairo_set_source_rgb(surface->cr, 0,1,1); 
-    } else if(color=="pink"){ 
+    } else if(strcmp(color, "pik") == 0){ 
         cairo_set_source_rgb(surface->cr, 1,0,1); 
-    } else if(color=="black"){ 
+    } else if(strcmp(color, "black") == 0){ 
         cairo_set_source_rgb(surface->cr, 0,0,0); 
     } else{ 
         cairo_set_source_rgb(surface->cr, 1,0,0); 
@@ -485,6 +486,14 @@ static void event_key_pressed_cb(GtkWidget* drawing_area, guint keyval, guint ke
 static void event_key_released_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controlle) {
 }
 
+gboolean close_request_cb(GtkWindow* self, gpointer user_data){
+    figure_s *figure = (figure_s*) user_data;
+    cairo_destroy(figure->cr);
+    cairo_surface_destroy(figure->stored_surface);
+    g_free(figure);
+    gtk_window_destroy(self);
+    return FALSE;
+}
 
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
@@ -526,6 +535,9 @@ void activate(GtkApplication* app, gpointer user_data){
     gtk_window_set_child(GTK_WINDOW(window),drawing_space); //asetetaan drawing_space windowing lapseksi
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(drawing_space),draw_callback,user_data,NULL); //asetetaan drawing arean piirtämiseen käytettäväksi funktioksi draw_callback
     
+    //ikkunan sulkeminen
+    g_signal_connect(window,"close-request", G_CALLBACK(close_request_cb),user_data);
+
     //tallennusominaisuus
 
     event_controller = gtk_event_controller_key_new();
