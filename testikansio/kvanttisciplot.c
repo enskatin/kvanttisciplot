@@ -598,6 +598,14 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
 
     //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
+gboolean close_request_cb(GtkWindow* self, gpointer user_data){
+    figure_s *figure = (figure_s*) user_data;
+    cairo_destroy(figure->cr);
+    cairo_surface_destroy(figure->stored_surface);
+    g_free(figure);
+    gtk_window_destroy(self);
+    return FALSE;
+}
 
 void activate(GtkApplication* app, gpointer user_data){
     GtkWidget *window;
@@ -610,6 +618,8 @@ void activate(GtkApplication* app, gpointer user_data){
     gtk_window_set_child(GTK_WINDOW(window),drawing_space); //asetetaan drawing_space windowing lapseksi
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(drawing_space),draw_callback,user_data,NULL); //asetetaan drawing arean piirtämiseen käytettäväksi funktioksi draw_callback
     
+    //ikkunan sulkeminen
+    g_signal_connect(window,"close-request", G_CALLBACK(close_request_cb),user_data);
     //tallennusominaisuus
 
     event_controller = gtk_event_controller_key_new();
@@ -623,6 +633,9 @@ void activate(GtkApplication* app, gpointer user_data){
     gtk_window_present(GTK_WINDOW(window));
 
 }
+
+
+
 
 int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
     //Tärkeää: piirtämisfunktioiden pitää aluksi muuttaa sisältämänsä data strukti gpointer tyyliseksi dataksi. 
