@@ -712,7 +712,7 @@ int main(int argc, char **argv){
     set_color(figure1, "pink");
     scatterplot_draw(figure1, &scatterdata2, 4, 10, 10);
     linear_fit(figure1, x, y, 29);
-    r = run_gtk(argc, argv, figure1);
+    r = run_gtk(argc, argv, figure2);
 
     return r;
 }

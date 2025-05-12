@@ -39,6 +39,7 @@ typedef struct{
     int x_label_bool;
     int y_label_bool;
     int title_bool;
+    int axis_bool;
     int freq_max; // Histogrammin arvojen freqvencin maksimi.
     cairo_surface_t *stored_surface;
     cairo_t *cr;
@@ -54,6 +55,7 @@ figure_s *figure(double min_x,double max_x, double min_y, double max_y){
     figure->max_y = max_y;
     figure->x_label_bool = 0;
     figure->y_label_bool = 0;
+    figure->axis_bool = 0;
     figure->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
     figure->cr = cairo_create(figure->stored_surface); // Luodaan cairon konteksti entiteetti.
     cairo_set_source_rgb(figure->cr,1,1,1); 
@@ -92,7 +94,7 @@ void set_color(figure_s *surface, char color[]){
         cairo_set_source_rgb(surface->cr, 1,1,0); 
     } else if(strcmp(color, "lightblue") == 0){ 
         cairo_set_source_rgb(surface->cr, 0,1,1); 
-    } else if(strcmp(color, "pik") == 0){ 
+    } else if(strcmp(color, "pink") == 0){ 
         cairo_set_source_rgb(surface->cr, 1,0,1); 
     } else if(strcmp(color, "black") == 0){ 
         cairo_set_source_rgb(surface->cr, 0,0,0); 
@@ -188,6 +190,7 @@ void draw_axis(figure_s *surface){
         cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,0);
         cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,10);
     }
+    surface->axis_bool = 1;
     cairo_stroke(surface->cr);
     cairo_set_source_rgb(surface->cr,0,1,0);
 }
@@ -405,7 +408,9 @@ void save(gpointer user_data) {
     if (figure->y_label_bool) {
         draw_y_label(cr, figure);
     }
-    draw_end_point_values(cr,figure);
+    if(figure->axis_bool){
+        draw_end_point_values(cr,figure);
+    }
     break;
     case HISTOGRAM:
     cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/1.2, MARGINAL/2);
@@ -564,7 +569,6 @@ static void event_key_pressed_cb(GtkWidget* drawing_area, guint keyval, guint ke
 static void event_key_released_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controlle) {
 }
 
-
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
     figure_s *figure = (figure_s*) user_data;
     //Tarvitsee tarkistuksen, että figuredata on olemassa ja siinä on jonkinlainen stored_surface, jos ei ole niin pitää piirtä jotain muuta.
@@ -584,7 +588,9 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
             if (figure->y_label_bool) {
                 draw_y_label(cr, figure);
             }
-            draw_end_point_values(cr,figure);
+            if(figure->axis_bool){
+                draw_end_point_values(cr,figure);
+            }
         break;
         case HISTOGRAM:
             cairo_set_source_surface(cr, figure->stored_surface, MARGINAL/1.2, MARGINAL/2);
@@ -599,6 +605,9 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
     //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
 gboolean close_request_cb(GtkWindow* self, gpointer user_data){
+    if (save_as_png) {  
+        save(user_data);
+    }
     figure_s *figure = (figure_s*) user_data;
     cairo_destroy(figure->cr);
     cairo_surface_destroy(figure->stored_surface);
@@ -635,8 +644,6 @@ void activate(GtkApplication* app, gpointer user_data){
 }
 
 
-
-
 int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
     //Tärkeää: piirtämisfunktioiden pitää aluksi muuttaa sisältämänsä data strukti gpointer tyyliseksi dataksi. 
     int r = 0;
@@ -644,9 +651,6 @@ int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argu
     app = gtk_application_new(NULL, G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate),user_data);
     r = g_application_run(G_APPLICATION(app), argc, argv);
-    if (save_as_png) {  
-        save(user_data);
-    }
     g_object_unref(app);
     return r;
 }
