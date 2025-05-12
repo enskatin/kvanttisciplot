@@ -60,19 +60,6 @@ figure_s *figure(double min_x,double max_x, double min_y, double max_y){
     cairo_set_source_rgb(figure->cr,1,0,0); 
     return figure; 
 }
-//ESIMERKKEJÄ:
-void plot1(figure_s *surface){
-    cairo_set_source_rgb(surface->cr,0,1,0); // Etsii surface struktin k.e.:n
-    cairo_rectangle(surface->cr,WINDOWIDTH/4,WINDOWHEIGHT/4,50,50);
-    cairo_fill(surface->cr);
-}
-
-void plot2(figure_s *surface){
-    cairo_set_source_rgb(surface->cr,1,0,0); // surfacesta k.e.
-    cairo_rectangle(surface->cr,(WINDOWIDTH*3)/4,(WINDOWHEIGHT*3)/4,50,50);
-    cairo_fill(surface->cr);
-}
-//ESIMERKIT LOPPUU.
 //funktio kuvaajan värin määrittämiseksi 
 
 //@param figure_s*surface pointteri figure_s tyyppiseen structiin, johon piirretään 
@@ -446,11 +433,6 @@ int *heights(double *vec, int box_amount, int size, float box_width){
     heights[box_amount]++;
     return heights;
 }
-
-double *height_adjuster(int *height,int size){
-
-}
-
 figure_s *histogram(figure_s *figure, double *data, int size, int interval){
     figure_s *histo = g_new0(figure_s,1);
     histo->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
