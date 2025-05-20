@@ -63,18 +63,7 @@ figure_s *figure(double min_x,double max_x, double min_y, double max_y){
     cairo_set_source_rgb(figure->cr,1,0,0); 
     return figure; 
 }
-//ESIMERKKEJÄ:
-void plot1(figure_s *surface){
-    cairo_set_source_rgb(surface->cr,0,1,0); // Etsii surface struktin k.e.:n
-    cairo_rectangle(surface->cr,WINDOWIDTH/4,WINDOWHEIGHT/4,50,50);
-    cairo_fill(surface->cr);
-}
 
-void plot2(figure_s *surface){
-    cairo_set_source_rgb(surface->cr,1,0,0); // surfacesta k.e.
-    cairo_rectangle(surface->cr,(WINDOWIDTH*3)/4,(WINDOWHEIGHT*3)/4,50,50);
-    cairo_fill(surface->cr);
-}
 //ESIMERKIT LOPPUU.
 //funktio kuvaajan värin määrittämiseksi 
 
