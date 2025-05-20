@@ -63,11 +63,25 @@ figure_s *figure(double min_x,double max_x, double min_y, double max_y){
     cairo_set_source_rgb(figure->cr,1,0,0); 
     return figure; 
 }
+//ESIMERKKEJÄ:
+void plot1(figure_s *surface){
+    cairo_set_source_rgb(surface->cr,0,1,0); // Etsii surface struktin k.e.:n
+    cairo_rectangle(surface->cr,WINDOWIDTH/4,WINDOWHEIGHT/4,50,50);
+    cairo_fill(surface->cr);
+}
+
+void plot2(figure_s *surface){
+    cairo_set_source_rgb(surface->cr,1,0,0); // surfacesta k.e.
+    cairo_rectangle(surface->cr,(WINDOWIDTH*3)/4,(WINDOWHEIGHT*3)/4,50,50);
+    cairo_fill(surface->cr);
+}
+//ESIMERKIT LOPPUU.
 //funktio kuvaajan värin määrittämiseksi 
 
 //@param figure_s*surface pointteri figure_s tyyppiseen structiin, johon piirretään 
 
 //@param char_color[] stringi, joka on: red, green, blue, yellow, lightblue, pink tai black 
+
 
 void set_color(figure_s *surface, char color[]){ 
     if(strcmp(color, "red") == 0){ 
@@ -118,8 +132,35 @@ void draw_end_point_values(cairo_t *cr, figure_s *surface){
 
 }
 
+void histogram_marginal_draw(cairo_t *cr, figure_s *surface){
+    char min_x[50];
+    char max_x[50];
+    char half_x[50];
+    sprintf(min_x,"%.2lf",surface->min_x);
+    sprintf(max_x,"%.2lf",surface->max_x);
+    sprintf(half_x,"%.2lf",surface->min_x+(surface->max_x-surface->min_x)/2);
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 12.0);
+    cairo_text_extents_t extents,extents1;
+    cairo_text_extents(cr,max_x,&extents1);
+    for(int j = 0; j<10; j++){
+        char frequence[50] = {"\0"};
+        sprintf(frequence,"%d",(surface->freq_max-j*((surface->freq_max)/10)));
+        cairo_text_extents(cr,frequence,&extents);
+        cairo_move_to(cr,MARGINAL/1.3-extents.width,30+(j*(HEIGHT_WITH_MARGINAL/10)));
+        cairo_show_text(cr,frequence);
+    }
+    cairo_move_to(cr,30,WINDOWHEIGHT-10);
+    cairo_show_text(cr,min_x);
+    cairo_move_to(cr,WINDOWIDTH-extents1.width,WINDOWHEIGHT-10);
+    cairo_show_text(cr,max_x);
+    cairo_move_to(cr,WINDOWIDTH-extents1.width-(WIDTH_WITH_MARGINAL/2),WINDOWHEIGHT-10);
+    cairo_show_text(cr,half_x);
+}
+
 void draw_axis(figure_s *surface){
-    surface->axis_bool = 1;
+
     cairo_set_source_rgb(surface->cr,0,0,0);
     cairo_set_line_width(surface->cr, 2);
     //PIIRRETÄÄN Y AKSELI X ORIGIN LEVEYDELLE
@@ -149,6 +190,7 @@ void draw_axis(figure_s *surface){
         cairo_move_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,0);
         cairo_line_to(surface->cr,WIDTH_WITH_MARGINAL/10*i,10);
     }
+    surface->axis_bool = 1;
     cairo_stroke(surface->cr);
     cairo_set_source_rgb(surface->cr,0,1,0);
 }
@@ -202,38 +244,9 @@ void y_label(figure_s* surface, char* text) {
     surface->y_label_text = text;
     surface->y_label_bool = 1;
 }
-
-
-void histogram_marginal_draw(cairo_t *cr, figure_s *surface){
-    char min_x[50];
-    char max_x[50];
-    char half_x[50];
-    sprintf(min_x,"%.2lf",surface->min_x);
-    sprintf(max_x,"%.2lf",surface->max_x);
-    sprintf(half_x,"%.2lf",surface->min_x+(surface->max_x-surface->min_x)/2);
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_select_font_face(cr, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(cr, 12.0);
-    cairo_text_extents_t extents,extents1;
-    cairo_text_extents(cr,max_x,&extents1);
-    for(int j = 0; j<10; j++){
-        char frequence[50] = {"\0"};
-        sprintf(frequence,"%d",(surface->freq_max-j*((surface->freq_max)/10)));
-        cairo_text_extents(cr,frequence,&extents);
-        cairo_move_to(cr,MARGINAL/1.3-extents.width,30+(j*(HEIGHT_WITH_MARGINAL/10)));
-        cairo_show_text(cr,frequence);
-    }
-    cairo_move_to(cr,30,WINDOWHEIGHT-10);
-    cairo_show_text(cr,min_x);
-    cairo_move_to(cr,WINDOWIDTH-extents1.width,WINDOWHEIGHT-10);
-    cairo_show_text(cr,max_x);
-    cairo_move_to(cr,WINDOWIDTH-extents1.width-(WIDTH_WITH_MARGINAL/2),WINDOWHEIGHT-10);
-    cairo_show_text(cr,half_x);
-}
-
-
 //vektorin alkioiden määrä. tällä hetkellä ei dynaaminen. tarkoitus tehdä dynaamisesti?
 //Käyttäjän syöttämän vektorin pituus on staattinen mutta tuntematon.
+
 
 //skaalaa vektorin välille min max. skaalaa vektorista vec->scaled_vec. tämäkin ehkä parempi tehdä jossain vaiheessa dynaamisesti
 void scale_to_interval(double* vec, int size, double min, double max, double* scaled_vec) {
@@ -256,6 +269,32 @@ void scale_to_interval(double* vec, int size, double min, double max, double* sc
         scaled_vec[i] = (double) (vec[i]-vec_min)*(max-min)/(vec_max-vec_min) + min;
     }
 }
+
+
+//scatterplot. varmaan helpompaa piirtää surfacella? testaamista varten annettu vektoreiden koot. vaatii ehkä dynaamisen muistinvarauksen vektoreiden pituuksien määrittämiseksi ellei toista tapaa löydy.
+void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y_size){
+    s_scatterplot *the_data = (s_scatterplot*) data;
+    double min_y = surface->min_y;
+    double max_y = surface->max_y;
+    double min_x = surface->min_x;
+    double max_x = surface->max_x;
+
+    double* x_vector = the_data->x_vector;
+    double* y_vector = the_data->y_vector;
+
+    if (x_size == y_size) {
+        for (int i = 0; i < x_size; i++) {
+
+            double window_x = (x_vector[i] - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
+            double window_y = (y_vector[i] - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
+
+            //otettu huomioon cairon epämukavuudet TARKISTA
+            draw_point(surface, window_x,  HEIGHT_WITH_MARGINAL - window_y, r);
+        }
+    }
+
+}
+
 //pisteiden yhdistäminen (kuvaajan piirtäminen)
 // input: x koords ja y koords ja niiden koot
 void draw_graph(figure_s* surface, double x_vector[], double y_vector[], int x_size, int y_size) {
@@ -286,29 +325,6 @@ void draw_graph(figure_s* surface, double x_vector[], double y_vector[], int x_s
     cairo_stroke(surface->cr);
 }
 
-//scatterplot. varmaan helpompaa piirtää surfacella? testaamista varten annettu vektoreiden koot. vaatii ehkä dynaamisen muistinvarauksen vektoreiden pituuksien määrittämiseksi ellei toista tapaa löydy.
-void scatterplot_draw(figure_s* surface, void *data, double r, int x_size, int y_size){
-    s_scatterplot *the_data = (s_scatterplot*) data;
-    double min_y = surface->min_y;
-    double max_y = surface->max_y;
-    double min_x = surface->min_x;
-    double max_x = surface->max_x;
-
-    double* x_vector = the_data->x_vector;
-    double* y_vector = the_data->y_vector;
-
-    if (x_size == y_size) {
-        for (int i = 0; i < x_size; i++) {
-
-            double window_x = (x_vector[i] - min_x)/(max_x-min_x)*(WIDTH_WITH_MARGINAL);
-            double window_y = (y_vector[i] - min_y)/(max_y-min_y)*(HEIGHT_WITH_MARGINAL);
-
-            //otettu huomioon cairon epämukavuudet TARKISTA
-            draw_point(surface, window_x,  HEIGHT_WITH_MARGINAL - window_y, r);
-        }
-    }
-
-}
 
 //suoran sovitus
 
@@ -411,7 +427,6 @@ void save(gpointer user_data) {
 }
 
 
-
 // HISTOGRAMMI
 int imax_finder(int *data, int size){
     if(!data){
@@ -490,6 +505,8 @@ int *heights(double *vec, int box_amount, int size, float box_width){
     return heights;
 }
 
+
+
 figure_s *histogram(double *data, int size, int interval){
     figure_s *histo = g_new0(figure_s,1);
     histo->stored_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, WIDTH_WITH_MARGINAL, HEIGHT_WITH_MARGINAL); // luodaan surface ja asetetaan se figureen
@@ -536,6 +553,7 @@ figure_s *histogram(double *data, int size, int interval){
     return histo;
 }
 
+
 guint prev_key_val;
 guint key_val;
 guint save_as_png = 0;
@@ -549,18 +567,6 @@ static void event_key_pressed_cb(GtkWidget* drawing_area, guint keyval, guint ke
 }
 
 static void event_key_released_cb(GtkWidget* drawing_area, guint keyval, guint keycode, GdkModifierType state, GtkEventControllerKey* event_controlle) {
-}
-
-gboolean close_request_cb(GtkWindow* self, gpointer user_data){
-    if (save_as_png) {  
-        save(user_data);
-    }
-    figure_s *figure = (figure_s*) user_data;
-    cairo_destroy(figure->cr);
-    cairo_surface_destroy(figure->stored_surface);
-    g_free(figure);
-    gtk_window_destroy(self);
-    return FALSE;
 }
 
 static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width, int height, gpointer user_data){
@@ -598,6 +604,17 @@ static void draw_callback(GtkDrawingArea *drawing_space, cairo_t *cr, int width,
 
     //HEITTÄÄ SEGVAULTIN JOS LAITTAA TÄMÄN JÄLKEEN KOODIA. KAIKKI HAJOAA
 }
+gboolean close_request_cb(GtkWindow* self, gpointer user_data){
+    if (save_as_png) {  
+        save(user_data);
+    }
+    figure_s *figure = (figure_s*) user_data;
+    cairo_destroy(figure->cr);
+    cairo_surface_destroy(figure->stored_surface);
+    g_free(figure);
+    gtk_window_destroy(self);
+    return FALSE;
+}
 
 void activate(GtkApplication* app, gpointer user_data){
     GtkWidget *window;
@@ -612,7 +629,6 @@ void activate(GtkApplication* app, gpointer user_data){
     
     //ikkunan sulkeminen
     g_signal_connect(window,"close-request", G_CALLBACK(close_request_cb),user_data);
-
     //tallennusominaisuus
 
     event_controller = gtk_event_controller_key_new();
@@ -627,6 +643,7 @@ void activate(GtkApplication* app, gpointer user_data){
 
 }
 
+
 int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argumentikseen käyttäjän plottaaman data struct muodossa.
     //Tärkeää: piirtämisfunktioiden pitää aluksi muuttaa sisältämänsä data strukti gpointer tyyliseksi dataksi. 
     int r = 0;
@@ -635,84 +652,5 @@ int run_gtk(int argc, char **argv, gpointer user_data){ //gtk plotter ottaa argu
     g_signal_connect(app, "activate", G_CALLBACK(activate),user_data);
     r = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
-    return r;
-}
-
-int main(int argc, char **argv){
-    int r;
-    //testaamista. dataa jostain tähtitieteestä
-    double x[29] = {3.95828, 4.08022, 4.06622, 4.17817, 4.22316, 3.99228, 3.61663, 4.13720, 3.52392, 3.89735, 4.35112, 3.89136, 3.62760, 4.48109, 4.26014, 3.77444, 4.03025, 4.13120, 4.24015, 4.11020, 3.73646, 4.37411, 4.42010, 4.27914, 4.32613, 3.87237, 4.19317, 4.17718, 3.93529};
-    
-    double y[29] = {16.31, 17.12, 17.37, 17.82, 17.77, 16.34, 14.54, 17.58, 15.09, 16.11, 18.51, 16.28, 14.65, 19.35, 18.16, 15.24, 16.76, 17.62, 18.11, 17.36, 15.85, 18.46, 19.34, 18.30, 18.41, 16.61, 17.76, 17.69, 16.37};
-    s_scatterplot scatterdata;
-    scatterdata.x_vector = x;
-    scatterdata.y_vector = y;
-
-
-    double vec1[10] = {
-        3.2000, 3.5222, 3.6444, 3.8667, 3.9889,
-        4.2111, 4.6333, 4.7556, 4.8778, 4.9000
-    };
-
-    // Array with 10 values from 13 to 19
-    double vec2[10] = {
-        13.0000, 13.6667, 14.3333, 15.0000, 15.6667,
-        16.3333, 17.0000, 17.6667, 18.3333, 19.0000
-    };
-
-    s_scatterplot scatterdata2;
-    scatterdata2.x_vector = vec1;
-    scatterdata2.y_vector = vec2;
-
-    double vec3[200] = {
-        3.87, 6.45, 4.82, 3.29, 7.91, 5.46, 5.71, 4.25, 3.88, 4.53,
-        5.21, 5.37, 3.92, 6.37, 6.15, 4.09, 6.61, 4.48, 4.42, 4.15,
-        4.36, 5.52, 3.18, 4.91, 6.75, 2.58, 2.96, 5.01, 6.84, 3.53,
-        5.41, 4.05, 5.11, 3.64, 4.66, 5.24, 4.29, 6.07, 3.77, 4.46,
-        4.67, 4.60, 4.18, 3.95, 4.97, 4.31, 6.52, 3.59, 6.21, 3.20,
-        5.90, 6.67, 5.00, 4.61, 4.22, 3.74, 3.42, 5.61, 4.01, 5.12,
-        4.79, 4.40, 5.99, 6.88, 5.43, 5.03, 4.06, 4.54, 3.66, 4.16,
-        3.71, 4.80, 4.20, 4.36, 4.74, 6.97, 3.63, 4.63, 4.10, 5.68,
-        3.81, 4.72, 4.27, 3.67, 4.07, 5.15, 4.56, 4.38, 5.34, 4.44,
-        4.33, 6.48, 4.11, 3.83, 3.45, 3.51, 4.85, 3.90, 4.30, 5.25,
-        4.68, 5.81, 4.69, 4.12, 3.87, 4.55, 3.69, 5.06, 4.32, 5.16,
-        4.24, 4.34, 4.49, 4.03, 3.33, 5.65, 5.07, 5.91, 5.18, 3.82,
-        4.65, 3.93, 4.23, 3.72, 5.39, 3.46, 4.43, 3.68, 3.54, 5.04,
-        4.17, 4.08, 5.20, 4.26, 5.58, 3.94, 3.89, 4.86, 5.59, 5.33,
-        4.28, 4.13, 4.02, 3.44, 3.52, 4.35, 4.00, 4.95, 5.51, 4.41,
-        4.92, 4.39, 3.75, 4.93, 4.73, 4.71, 4.88, 3.78, 5.42, 5.83,
-        3.35, 5.66, 5.28, 3.91, 5.48, 3.73, 4.50, 4.47, 4.76, 4.62,
-        4.39, 4.21, 4.75, 4.84, 4.59, 4.87, 4.98, 5.30, 4.78, 3.56,
-        3.76, 5.17, 4.57, 5.47, 4.14, 3.60, 4.64, 5.05, 4.19, 5.63,
-        4.90, 4.94, 4.52, 5.76, 4.45, 4.37, 3.50, 5.26, 4.70, 5.36
-    };
-    figure_s *figure2 = histogram(vec3,200,30);
-
-     //funktion piirtämistä
-    double X[100];
-    double Y[100];
-    for (int i = 0; i < 100; i++) {
-        X[i] = i * (double)20/100;
-        Y[i] = X[i]*X[i]*X[i] - 3 * X[i]*X[i] + 2;
-    }
-    
-    //figure_s* figure1 = figure(50 ,WINDOWIDTH, 50, WINDOWHEIGHT);
-    figure_s* figure1 = figure(3,5,12,21);
-    draw_graph(figure1, X, Y, 100, 100);
-    draw_axis(figure1);
-    x_label(figure1, "X-akseli");
-    y_label(figure1, "Y-akseli");
-    title(figure1, "Kuvajaja");
-    title(figure2, "Histogrammi");
-    //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/2, 25);
-    //draw_point(figure1, WIDTH_WITH_MARGINAL/4, HEIGHT_WITH_MARGINAL/4, 25);
-    //toimii :D
-    set_color(figure1, "blue");
-    scatterplot_draw(figure1, &scatterdata, 4, 29, 29);
-    set_color(figure1, "pink");
-    scatterplot_draw(figure1, &scatterdata2, 4, 10, 10);
-    linear_fit(figure1, x, y, 29);
-    r = run_gtk(argc, argv, figure2);
-
     return r;
 }
